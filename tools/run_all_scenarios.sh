@@ -5,6 +5,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$SCRIPT_DIR"  # <--- ADD THIS LINE
+
 RESULTS_DIR="$SCRIPT_DIR/results"
 SCENARIOS_DIR="$SCRIPT_DIR/configs/scenarios"
 TIMESTAMP=$(date +%s)
@@ -21,8 +23,7 @@ echo "Results directory: $RESULTS_DIR"
 echo ""
 
 # Get available protocols
-PROTOCOLS=$(python3 -c "from stgen.utils import list_available_protocols; print(','.join(list_available_protocols()))" 2>/dev/null)
-
+PROTOCOLS=$(PYTHONPATH=$SCRIPT_DIR python3 -c "from stgen.utils import list_available_protocols; print(','.join(list_available_protocols()))")
 if [ -z "$PROTOCOLS" ]; then
     echo -e "${RED}Error: No protocols found${NC}"
     exit 1
@@ -63,6 +64,7 @@ for scenario in $SCENARIOS; do
         if python3 -m stgen.main --scenario "$scenario" --protocol "$protocol" \
             > "$RESULTS_DIR/test_${scenario}_${protocol}_${TIMESTAMP}.log" 2>&1; then
             echo -e "${GREEN}✓${NC}"
+        
             PASSED_TESTS=$((PASSED_TESTS + 1))
         else
             echo -e "${RED}✗${NC}"

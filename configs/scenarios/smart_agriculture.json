@@ -5,8 +5,9 @@
     "mode": "active",
     "server_ip": "127.0.0.1",
     "server_port": 5000,
-    "num_clients": 100,
-    "duration": 20,
+    "num_clients": 5,
+    "duration": 60,
+    "packets_per_client": 5,
     "sensors": ["temp", "humidity", "soil_moisture", "light"],
     "traffic_pattern": {
         "temp": {"rate_hz": 0.017, "burst": false},     
@@ -17,10 +18,13 @@
     "network_conditions": {
         "latency_ms": 200,
         "jitter_ms": 50,
-        "bandwidth_kbps": 128
+        "bandwidth_kbps": 128,
+        "loss_percent": 5.0
     },
     "failure_injection": {
         "packet_loss": 0.05,  
         "client_crashes": []
-    }
+    },
+    "network_profile": "congested"
+
 }

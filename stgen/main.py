@@ -116,6 +116,7 @@ from .sensor_generator import generate_sensor_stream
 from .utils import load_config, load_scenario, list_available_scenarios, list_available_protocols
 from .failure_injector import FailureInjector
 from .validator import validate_protocol_results
+from .network_emulator import NetworkEmulator
 
 # Configure logging
 logging.basicConfig(
@@ -199,6 +200,127 @@ def list_protocols():
     print()
 
 
+# def run_single_test(cfg: dict) -> bool:
+#     """Run a single protocol test."""
+#     # Validate config
+#     from .utils import validate_config
+#     validate_config(cfg)
+    
+#     _LOG.info(f"Loaded config from {cfg.get('_source', 'dict')}")
+    
+#     # Create orchestrator
+#     try:
+#         orch = Orchestrator(cfg["protocol"], cfg)
+#     except Exception as e:
+#         _LOG.error(f"Orchestrator creation failed: {e}")
+#         return False
+    
+#     # Setup failure injection if configured
+#     if "failure_injection" in cfg:
+#         _LOG.info("Failure injection enabled")
+#         injector = FailureInjector(cfg)
+#         # Wrap send_data with failure injection
+#         from .failure_injector import wrap_send_with_failures
+#         orch.protocol.send_data = wrap_send_with_failures(
+#             orch.protocol.send_data, 
+#             injector
+#         )
+    
+#     # Generate sensor stream
+#     stream = generate_sensor_stream(cfg)
+    
+#     # Run test
+#     try:
+#         ok = orch.run_test(stream)
+#     except KeyboardInterrupt:
+#         _LOG.warning("Test interrupted by user")
+#         ok = False
+#     except Exception as e:
+#         _LOG.exception("Test failed")
+#         ok = False
+#     finally:
+#         orch.protocol.stop()
+    
+#     # Save results
+#     if ok or orch.metrics["sent"] > 0:
+#         timestamp = int(time.time())
+#         out_dir = Path("results") / f"{cfg['protocol']}_{timestamp}"
+#         orch.save_report(out_dir)
+        
+#         # Run validation if requested
+#         if cfg.get("validate", False):
+#             qos = cfg.get("qos_requirements", {})
+#             validation_report = validate_protocol_results(orch.metrics, qos)
+#             print("\n" + validation_report)
+#             (out_dir / "validation.txt").write_text(validation_report)
+        
+#         _LOG.info("Test completed successfully")
+#         return True
+#     else:
+#         _LOG.error("Test failed - no results saved")
+#         return False
+
+# def run_single_test(cfg: dict) -> bool:
+#     """Run a single protocol test."""
+#     from .utils import validate_config
+#     validate_config(cfg)
+    
+#     _LOG.info(f"Loaded config from {cfg.get('_source', 'dict')}")
+    
+#     emulator = None
+#     orch = None
+#     ok = False
+    
+#     try:
+#         # --- 1. START NETWORK EMULATOR ---
+#         if "network_profile" in cfg:
+#             _LOG.info(f"Applying network profile: {cfg['network_profile']}")
+            
+#             # Assumes profiles are in configs/networks/
+#             profile_path = f"configs/networks/{cfg['network_profile']}.json"
+            
+#             # Use 'lo' for local testing
+#             emulator = NetworkEmulator.from_profile(profile_path, interface="lo")
+        
+#         # --- 2. CREATE ORCHESTRATOR ---
+#         orch = Orchestrator(cfg["protocol"], cfg)
+
+#         # ... (Your existing FailureInjector code can go here) ...
+        
+#         # --- 3. GENERATE STREAM ---
+#         stream = generate_sensor_stream(cfg)
+        
+#         # --- 4. RUN TEST ---
+#         ok = orch.run_test(stream)
+
+#     except KeyboardInterrupt:
+#         _LOG.warning("Test interrupted by user")
+#         ok = False
+#     except Exception as e:
+#         _LOG.exception("Test failed")
+#         ok = False
+#     finally:
+#         # --- 5. CLEANUP ---
+#         _LOG.info("Cleaning up test...")
+#         if orch:
+#             orch.protocol.stop()
+#         if emulator:
+#             emulator.clear()
+#             _LOG.info("Network emulation cleared.")
+    
+#     # --- 6. SAVE REPORT ---
+#     if ok or (orch and orch.metrics["sent"] > 0):
+#         timestamp = int(time.time())
+#         # Use a scenario-based name if available
+#         scenario_name = cfg.get('_source', 'unknown').split(':')[-1]
+#         out_dir = Path("results") / f"{cfg['protocol']}_{scenario_name}_{timestamp}"
+        
+#         orch.save_report(out_dir)
+#         _LOG.info("Test completed successfully")
+#         return True
+#     else:
+#         _LOG.error("Test failed - no results saved")
+#         return False
 def run_single_test(cfg: dict) -> bool:
     """Run a single protocol test."""
     # Validate config
@@ -207,30 +329,38 @@ def run_single_test(cfg: dict) -> bool:
     
     _LOG.info(f"Loaded config from {cfg.get('_source', 'dict')}")
     
-    # Create orchestrator
+    # --- Define variables ---
+    emulator = None
+    orch = None
+    ok = False
+    
     try:
+        # --- 1. START NETWORK EMULATOR ---
+        if "network_profile" in cfg:
+            profile_name = cfg['network_profile']
+            _LOG.info(f"Applying network profile: {profile_name}")
+            
+            # --- FIX 1: Correct path ---
+            # (Your configs are in 'networks/', not 'networks_conditions/')
+            profile_path = f"configs/network_conditions/{profile_name}.json"
+            
+            # Import here to avoid circular dependency
+            from .network_emulator import NetworkEmulator 
+            
+            # Use 'lo' for local testing (requires sudo)
+            emulator = NetworkEmulator.from_profile(profile_path, interface="lo")
+        
+        # --- 2. CREATE ORCHESTRATOR ---
         orch = Orchestrator(cfg["protocol"], cfg)
-    except Exception as e:
-        _LOG.error(f"Orchestrator creation failed: {e}")
-        return False
-    
-    # Setup failure injection if configured
-    if "failure_injection" in cfg:
-        _LOG.info("Failure injection enabled")
-        injector = FailureInjector(cfg)
-        # Wrap send_data with failure injection
-        from .failure_injector import wrap_send_with_failures
-        orch.protocol.send_data = wrap_send_with_failures(
-            orch.protocol.send_data, 
-            injector
-        )
-    
-    # Generate sensor stream
-    stream = generate_sensor_stream(cfg)
-    
-    # Run test
-    try:
+
+        # --- (FailureInjector code could go here if you want to use it) ---
+        
+        # --- 3. GENERATE STREAM ---
+        stream = generate_sensor_stream(cfg)
+        
+        # --- 4. RUN TEST ---
         ok = orch.run_test(stream)
+
     except KeyboardInterrupt:
         _LOG.warning("Test interrupted by user")
         ok = False
@@ -238,28 +368,33 @@ def run_single_test(cfg: dict) -> bool:
         _LOG.exception("Test failed")
         ok = False
     finally:
-        orch.protocol.stop()
+        # --- 5. CLEANUP (CRITICAL) ---
+        _LOG.info("Cleaning up test...")
+        if orch:
+            orch.protocol.stop()
+        if emulator:
+            emulator.clear()
+            _LOG.info("Network emulation cleared.")
     
-    # Save results
-    if ok or orch.metrics["sent"] > 0:
+    # --- 6. SAVE REPORT ---
+    if ok or (orch and orch.metrics["sent"] > 0):
         timestamp = int(time.time())
-        out_dir = Path("results") / f"{cfg['protocol']}_{timestamp}"
+        
+        # Use a scenario-based name if available
+        scenario_name = "default"
+        if "_source" in cfg:
+            scenario_name = cfg.get('_source', 'unknown').split(':')[-1]
+            # remove .json
+            scenario_name = scenario_name.replace('.json', '')
+            
+        out_dir = Path("results") / f"{cfg['protocol']}_{scenario_name}_{timestamp}"
+        
         orch.save_report(out_dir)
-        
-        # Run validation if requested
-        if cfg.get("validate", False):
-            qos = cfg.get("qos_requirements", {})
-            validation_report = validate_protocol_results(orch.metrics, qos)
-            print("\n" + validation_report)
-            (out_dir / "validation.txt").write_text(validation_report)
-        
         _LOG.info("Test completed successfully")
         return True
     else:
         _LOG.error("Test failed - no results saved")
         return False
-
-
 def run_comparison(protocols: list, scenario_cfg: dict):
     """Run comparison of multiple protocols."""
     from .comparator import ProtocolComparator

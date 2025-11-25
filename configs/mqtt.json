@@ -8,5 +8,6 @@
   "sensors": ["temp", "humidity", "motion"],
   "topic": "stgen/sensors",
   "qos": 1,
-  "keepalive": 60
+  "keepalive": 60,
+  "network_profile": "congested"
 }
