@@ -13,6 +13,9 @@ A lightweight testbed for validating custom IoT communication protocols under re
 
 ## Quick Start
 ```bash
+python3 -m venv myenv
+source myenv/bin/activate
+
 # Install
 pip install -r requirements.txt
 
@@ -32,15 +35,6 @@ See `docs/` for detailed guides.
 
 ## Citation
 
-If you use STGen in your research, please cite:
-```
-@article{your_paper,
-  title={STGen: A Lightweight Testbed for Validating IoT Protocols},
-  author={Your Name},
-  journal={IEEE Internet of Things Journal},
-  year={2025}
-}
-```
 
 
 
