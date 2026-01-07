@@ -7,7 +7,7 @@
   "duration": 10,
   "sensors": ["temp", "humidity", "motion"],
   "network_profile": "congested",
-    "weibull_k": 0.8,
+  "weibull_k": 0.8,
   "weibull_scale": 2.0,
   "use_weibull_iat": true,
   "packets_per_client": 50

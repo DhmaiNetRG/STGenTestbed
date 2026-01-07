@@ -123,7 +123,7 @@ def main():
     log.info("\n" + "="*55)
     log.info(f"--- Decision Analysis (Section 5.4) ---")
     log.info("="*55)
-    log.info(f"🏆 Recommendation: {winner['protocol'].upper()}")
+    log.info(f" Recommendation: {winner['protocol'].upper()}")
     log.info(f"   Provides the longest battery life ({winner['life_months']:.1f} months) ")
     log.info(f"   under the specified congested network conditions.")
 

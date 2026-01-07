@@ -47,11 +47,11 @@ class EmbeddedBroker:
         
         # Create mosquitto config
         config_content = f"""
-listener {self.port} {self.host}
-allow_anonymous true
-max_queued_messages 10000
-max_inflight_messages 1000
-"""
+        listener {self.port} {self.host}
+        allow_anonymous true
+        max_queued_messages 10000
+        max_inflight_messages 1000
+        """
         
         self.config_file = Path(f"/tmp/mosquitto_{self.port}.conf")
         self.config_file.write_text(config_content)
@@ -68,7 +68,7 @@ max_inflight_messages 1000
             # Wait for broker to be ready
             for _ in range(20):  # 2 seconds timeout
                 if self._is_port_open(self.host, self.port):
-                    _LOG.info("✓ Embedded broker started successfully")
+                    _LOG.info(" Embedded broker started successfully")
                     return True
                 time.sleep(0.1)
             
@@ -157,7 +157,7 @@ class Protocol(ProtocolInterface):
         
         # Core nodes: Start broker + subscriber
         if self._should_start_broker:
-            _LOG.info("🎯 Core mode - starting embedded broker")
+            _LOG.info(" Core mode - starting embedded broker")
             
             if not self._broker.start():
                 raise RuntimeError("Failed to start embedded MQTT broker")
@@ -166,7 +166,7 @@ class Protocol(ProtocolInterface):
         
         # Sensor nodes: Just connect to remote broker
         else:
-            _LOG.info("📡 Sensor mode - connecting to remote broker")
+            _LOG.info(" Sensor mode - connecting to remote broker")
             _LOG.info("   Remote: %s:%s", self.broker_host, self.broker_port)
         
         # Both roles start subscriber
@@ -290,7 +290,7 @@ class Protocol(ProtocolInterface):
         self._msg_count += 1
         payload = json.dumps(data)
         
-        _LOG.info("📤 [%s] SENDING (msg #%d): dev=%s, seq=%s", 
+        _LOG.info(" [%s] SENDING (msg #%d): dev=%s, seq=%s", 
                   client_id, self._msg_count, 
                   data.get('dev_id', '?'), 
                   data.get('seq_no', '?'))
@@ -327,11 +327,11 @@ class Protocol(ProtocolInterface):
         """Callback when subscriber connects to broker."""
         if rc == 0:
             self._server_connected = True
-            _LOG.info("✓ Subscriber connected (role=%s)", self._role)
+            _LOG.info(" Subscriber connected (role=%s)", self._role)
             client.subscribe(self.topic, qos=self.qos)
-            _LOG.info("📡 Subscribed to topic: %s (QoS %d)", self.topic, self.qos)
+            _LOG.info(" Subscribed to topic: %s (QoS %d)", self.topic, self.qos)
         else:
-            _LOG.error("❌ Subscriber connection failed with code %s", rc)
+            _LOG.error(" Subscriber connection failed with code %s", rc)
 
     def _on_server_message(self, client, userdata, msg):
         """Callback when subscriber receives a message."""
@@ -343,13 +343,13 @@ class Protocol(ProtocolInterface):
             dev_id = data.get('dev_id', '?')
             seq_no = data.get('seq_no', '?')
             
-            _LOG.info("📥 RECEIVED (msg #%d): node=%s, dev=%s, seq=%s", 
+            _LOG.info(" RECEIVED (msg #%d): node=%s, dev=%s, seq=%s", 
                      self._recv_count, node_id, dev_id, seq_no)
             
             if "ts" in data:
                 latency_ms = (time.time() - data["ts"]) * 1000
                 self._lat.append(latency_ms)
-                _LOG.debug("⏱️  End-to-end latency: %.2f ms", latency_ms)
+                _LOG.debug("  End-to-end latency: %.2f ms", latency_ms)
                 
         except Exception as e:
             _LOG.warning("Failed to parse received message: %s", e)
@@ -358,16 +358,16 @@ class Protocol(ProtocolInterface):
         """Callback when subscriber disconnects."""
         self._server_connected = False
         if rc != 0:
-            _LOG.warning("⚠️  Subscriber disconnected unexpectedly (rc=%s)", rc)
+            _LOG.warning("  Subscriber disconnected unexpectedly (rc=%s)", rc)
         else:
             _LOG.info("Subscriber disconnected")
 
     def _on_client_connect(self, client, userdata, flags, rc, client_id):
         """Callback when publisher client connects."""
         if rc == 0:
-            _LOG.debug("✓ Client %s connected", client_id)
+            _LOG.debug(" Client %s connected", client_id)
         else:
-            _LOG.error("❌ Client %s connection failed (rc=%s)", client_id, rc)
+            _LOG.error(" Client %s connection failed (rc=%s)", client_id, rc)
 
     def _on_publish(self, client, userdata, mid):
         """Callback when message is published."""
@@ -380,7 +380,7 @@ class Protocol(ProtocolInterface):
     def _on_client_disconnect(self, client, userdata, rc, client_id):
         """Callback when publisher disconnects."""
         if rc != 0:
-            _LOG.warning("⚠️  Client %s disconnected unexpectedly (rc=%s)", client_id, rc)
+            _LOG.warning("  Client %s disconnected unexpectedly (rc=%s)", client_id, rc)
 
     def is_alive(self) -> bool:
         """Check if MQTT clients are still connected."""

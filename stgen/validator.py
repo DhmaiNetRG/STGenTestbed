@@ -189,9 +189,9 @@ class ProtocolValidator:
         report.append("=" * 60)
         
         if passed == total:
-            report.append("🎉 ALL CHECKS PASSED - Protocol is production-ready!")
+            report.append(" ALL CHECKS PASSED - Protocol is production-ready!")
         elif any(c.severity == "critical" and not c.passed for c in self.checks):
-            report.append("⛔ CRITICAL ISSUES FOUND - Protocol needs fixes")
+            report.append(" CRITICAL ISSUES FOUND - Protocol needs fixes")
         else:
             report.append("  WARNINGS FOUND - Protocol works but has issues")
         

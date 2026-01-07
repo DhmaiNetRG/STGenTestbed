@@ -107,8 +107,9 @@ def validate_config(cfg: Dict[str, Any]) -> bool:
         raise ValueError(f"Missing required fields: {missing}")
     
     # Validate types
-    if not isinstance(cfg["num_clients"], int) or cfg["num_clients"] <= 0:
-        raise ValueError("num_clients must be a positive integer")
+    # Allow `num_clients == 0` for server-only / core nodes (no local clients).
+    if not isinstance(cfg["num_clients"], int) or cfg["num_clients"] < 0:
+        raise ValueError("num_clients must be a non-negative integer")
     
     if not isinstance(cfg["duration"], (int, float)) or cfg["duration"] <= 0:
         raise ValueError("duration must be a positive number")

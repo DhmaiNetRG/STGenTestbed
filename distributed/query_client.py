@@ -16,10 +16,13 @@ import sys
 from pathlib import Path
 from typing import Dict, Any, List
 
-# Add parent directory to path to find protocols and stgen modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# Setup logging
+try:
+    from protocols.mqtt.mqtt_dist import Protocol as MQTTDist
+except Exception:
+    MQTTDist = None
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
@@ -46,46 +49,62 @@ class QueryClient:
         _LOG.info(f"Connecting to {self.protocol_name} server at {self.server_ip}:{self.server_port}")
         
         if self.protocol_name == "mqtt":
-            self._connect_mqtt()
+            if getattr(self, '_connect_mqtt', None):
+                self._connect_mqtt()
+            elif getattr(self, '_connect_mqtt_dist', None):
+                self._connect_mqtt_dist()
+            else:
+                raise RuntimeError("No MQTT connect implementation available")
         else:
             self._connect_generic()
     
     def _connect_mqtt(self):
-        """Connect to MQTT broker for querying."""
+        """Connect using STGen's distributed MQTT layer (mqtt_dist)."""
         try:
-            import paho.mqtt.client as mqtt
-            
-            self.mqtt_client = mqtt.Client(
-                client_id=f"query_client_{int(time.time())}",
-                clean_session=True
-            )
-            
-            self.mqtt_client.on_connect = self._on_mqtt_connect
-            self.mqtt_client.on_message = self._on_mqtt_message
-            
-            _LOG.info("Connecting to MQTT broker...")
-            self.mqtt_client.connect(self.server_ip, self.server_port, 60)
-            self.mqtt_client.loop_start()
-            
-            # Wait for connection
-            timeout = 10
-            elapsed = 0
-            while not self.connected and elapsed < timeout:
-                time.sleep(0.1)
-                elapsed += 0.1
-            
-            if not self.connected:
-                raise RuntimeError("Failed to connect to MQTT broker")
-            
-            _LOG.info("✓ Connected to MQTT broker")
-            
-        except ImportError:
-            _LOG.error("paho-mqtt not installed. Run: pip install paho-mqtt")
-            raise
+            query_cfg = {
+                **self.cfg,
+                "mode": "query",
+                "server_ip": self.server_ip,
+                "server_port": self.server_port,
+                "role": "query_client",
+                "num_clients": 0
+            }
+
+            self.protocol = MQTTDist(query_cfg)
+            self.protocol.start_server()   # starts Mosquitto and subscriber
+            # Attach a local message handler so QueryClient collects incoming messages
+            server_client = getattr(self.protocol, '_server_client', None)
+            if server_client is not None:
+                # Preserve existing handler
+                existing_on_message = getattr(server_client, 'on_message', None)
+
+                def _wrapped_on_message(client, userdata, msg):
+                    # Call protocol's original handler first (keeps logging/metrics)
+                    try:
+                        if existing_on_message:
+                            existing_on_message(client, userdata, msg)
+                    except Exception:
+                        pass
+
+                    # Then collect payload into this QueryClient
+                    try:
+                        payload = json.loads(msg.payload.decode())
+                        self.received_data.append(payload)
+                    except Exception:
+                        pass
+
+                server_client.on_message = _wrapped_on_message
+                # Expose mqtt_client for compatibility checks elsewhere
+                self.mqtt_client = server_client
+
+            self.connected = True
+
+            _LOG.info("✓ Connected using mqtt_dist protocol")
+
         except Exception as e:
-            _LOG.error(f"MQTT connection failed: {e}")
+            _LOG.error(f"mqtt_dist connection failed: {e}")
             raise
-    
+
     def _connect_generic(self):
         """Generic protocol connection (fallback)."""
         # Import protocol dynamically
@@ -145,18 +164,32 @@ class QueryClient:
         Returns:
             List of matching sensor readings
         """
-        _LOG.info(f"📊 Querying data with filter: {query_filter}")
+        _LOG.info(f"Querying data with filter: {query_filter}")
         
         try:
             # For MQTT, filter from received data
-            if self.mqtt_client and self.mqtt_client.is_connected():
+            # Use self.connected flag (set during connect) or mqtt_client.is_connected() if available.
+            connected_flag = False
+            if self.connected:
+                connected_flag = True
+            elif self.mqtt_client is not None:
+                is_conn = getattr(self.mqtt_client, 'is_connected', None)
+                try:
+                    if callable(is_conn):
+                        connected_flag = bool(is_conn())
+                    else:
+                        connected_flag = bool(is_conn)
+                except Exception:
+                    connected_flag = False
+
+            if connected_flag:
                 return self._filter_data(self.received_data, query_filter)
             
             # For other protocols with query support
             elif self.protocol and hasattr(self.protocol, 'query_data'):
                 results = self.protocol.query_data(query_filter)
                 self.received_data.extend(results)
-                _LOG.info(f"✓ Received {len(results)} data points")
+                _LOG.info(f" Received {len(results)} data points")
                 return results
             
             else:
@@ -248,14 +281,14 @@ class QueryClient:
             results = self.query_data(query_filter)
             
             if results:
-                _LOG.info(f"✓ Found {len(results)} matching messages")
+                _LOG.info(f" Found {len(results)} matching messages")
                 # Display last 5 results
                 display_count = min(5, len(results))
                 _LOG.info(f"Showing last {display_count} results:")
                 self._display_results(results[-display_count:])
             else:
                 if len(self.received_data) == 0:
-                    _LOG.info("⏳ Waiting for sensor data... (no messages received yet)")
+                    _LOG.info(" Waiting for sensor data... (no messages received yet)")
                 else:
                     _LOG.info(f"No messages match filter (collected {len(self.received_data)} total)")
             
@@ -299,6 +332,12 @@ class QueryClient:
                 _LOG.info("Disconnected from MQTT broker")
             except Exception as e:
                 _LOG.warning(f"Error disconnecting: {e}")
+            # If mqtt_client came from a protocol instance, also stop protocol
+        if self.protocol and hasattr(self.protocol, 'stop'):
+            try:
+                self.protocol.stop()
+            except Exception:
+                pass
         
         if self.protocol and hasattr(self.protocol, 'stop'):
             self.protocol.stop()
@@ -370,7 +409,7 @@ Examples:
     
     try:
         print("\n" + "="*60)
-        print("🔍 STGen Query Client")
+        print(" STGen Query Client")
         print("="*60)
         print(f"  Server: {args.server_ip}:{args.server_port}")
         print(f"  Protocol: {args.protocol}")

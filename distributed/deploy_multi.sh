@@ -5,7 +5,7 @@ CORE_IP="192.168.1.100"  # Change to your core machine IP
 PROTOCOL="mqtt"
 DURATION=300
 
-echo "🌐 STGen Distributed Deployment"
+echo "STGen Distributed Deployment"
 echo "================================"
 echo "Core IP: $CORE_IP"
 echo "Protocol: $PROTOCOL"

@@ -49,7 +49,7 @@ def generate_reports():
 
             rg = ReportGenerator(results, scenario_name=scenario_name)
 
-            print(f"📊 Generating reports for {folder} ...")
+            print(f" Generating reports for {folder} ...")
             rg.generate_html_report(os.path.join(folder_path, "report.html"))
             rg.generate_markdown_report(os.path.join(folder_path, "report.md"))
             rg.generate_csv_report(os.path.join(folder_path, "report.csv"))
