@@ -93,7 +93,7 @@ class Orchestrator:
             return self._run_passive()
     
     def _run_active(self, stream: Iterable[Tuple[str, Dict, float]]) -> bool:
-        """Active mode: orchestrator drives send_data()."""
+        """Active mode: orchestrator drives send_data() with drift compensation."""
         _LOG.info("Running in ACTIVE mode")
         
         # If this is a server-only node (core), just listen
@@ -103,6 +103,10 @@ class Orchestrator:
             _LOG.info(f"Listening for {duration} seconds...")
             time.sleep(duration)
             return True
+        
+        # Initialize drift compensation
+        # time.perf_counter() is monotonic and suitable for measuring intervals
+        next_wake_time = time.perf_counter()
         
         # Sensor nodes - send data
         for cid, payload, to in stream:
@@ -119,7 +123,7 @@ class Orchestrator:
                 ok, t_srv = self.protocol.send_data(cid, payload)
             except Exception as e:
                 self.metrics["err"].append(str(e))
-                continue
+                # Continue even if send failed, to maintain timing if possible
             
             self.metrics["sent"] += 1
             
@@ -128,7 +132,18 @@ class Orchestrator:
                 self.metrics["lat"].append((t_srv - t0) * 1000)
                 self.metrics["recv"] += 1
             
-            time.sleep(to)
+            # ACCURATE TIMING LOGIC (Drift Compensation)
+            # The 'to' value is the target interval until the NEXT message.
+            # We increment the target wake time by this interval.
+            next_wake_time += to
+            
+            now = time.perf_counter()
+            sleep_time = next_wake_time - now
+            
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+            # else: We are lagging behind (processing took longer than interval).
+            # We don't sleep, immediately processing next message to catch up.
         
         return True
     

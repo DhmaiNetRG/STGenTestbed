@@ -1,0 +1,32 @@
+Metadata-Version: 2.4
+Name: DTLSSocket
+Version: 0.2.3
+Summary: DTLSSocket is a cython wrapper for tinydtls with a Socket like interface
+Home-page: https://github.com/mclab-hbrs/DTLSSocket
+Author: Jannis Konrad
+Author-email: Kabel42@gmail.com
+License: EPL-1.0
+Classifier: License :: OSI Approved :: Eclipse Public License 1.0 (EPL-1.0)
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: license
+Dynamic: license-file
+Dynamic: summary
+
+This is a cython wrapper for tinydtls.
+
+It currently implements a socket like Interface with sendmsg and readmsg.
+All other calls are passt to the underlying socket.
+
+For more info of tinydtls see https://projects.eclipse.org/projects/iot.tinydtls
+
+This Code was created at the [Multimedia Communication Laboratory](http://mc-lab.de) of the [Bonn-Rhein-Sieg University of Applied Sciences](http://h-brs.de)
+
+The Repo was originally hostet in our [GitLab](https://git.fslab.de/archived_jkonra2m_1/tinydtls-cython) \
+The main Repo is now on [GitHub](https://github.com/mclab-hbrs/DTLSSocket)

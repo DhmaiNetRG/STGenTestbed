@@ -1,9 +1,9 @@
 {
-  "name": "LoRaWAN LPWAN",
+  "name": "LoRaWAN",
   "description": "Low-power wide-area network",
-  "latency_ms": 500,
-  "jitter_ms": 100,
-  "loss_percent": 5.0,
+  "latency_ms": 600,
+  "jitter_ms": 40,
+  "loss_percent": 2.5,
   "corruption_percent": 0.5,
   "bandwidth_kbps": 50
 }

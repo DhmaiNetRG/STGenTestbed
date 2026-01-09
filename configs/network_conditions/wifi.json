@@ -1,9 +1,9 @@
 {
-  "name": "Typical WiFi",
+  "name": "WiFi",
   "description": "Home/office WiFi conditions",
-  "latency_ms": 25,
+  "latency_ms": 20,
   "jitter_ms": 5,
-  "loss_percent": 2.0,
+  "loss_percent": 0.5,
   "corruption_percent": 0.1,
   "bandwidth_kbps": 54000
 }

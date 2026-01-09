@@ -332,16 +332,13 @@ class QueryClient:
                 _LOG.info("Disconnected from MQTT broker")
             except Exception as e:
                 _LOG.warning(f"Error disconnecting: {e}")
-            # If mqtt_client came from a protocol instance, also stop protocol
+        
         if self.protocol and hasattr(self.protocol, 'stop'):
             try:
                 self.protocol.stop()
-            except Exception:
-                pass
-        
-        if self.protocol and hasattr(self.protocol, 'stop'):
-            self.protocol.stop()
-            _LOG.info("Protocol stopped")
+                _LOG.info("Protocol stopped")
+            except Exception as e:
+                _LOG.warning(f"Error stopping protocol: {e}")
 
 
 def main():

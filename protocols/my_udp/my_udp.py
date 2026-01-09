@@ -12,6 +12,7 @@ import logging
 import time
 from pathlib import Path
 from typing import List
+from concurrent.futures import ThreadPoolExecutor
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -60,7 +61,7 @@ class Protocol(ProtocolInterface):
                 "Run: make -C protocols/my_udp"
             )
         
-        for i in range(num):
+        def spawn_client(i):
             cmd = [
                 str(exe),
                 self.cfg["server_ip"],
@@ -68,6 +69,9 @@ class Protocol(ProtocolInterface):
                 str(i)  # Client ID
             ]
             self._spawn(cmd, f"client-{i}")
+
+        with ThreadPoolExecutor(max_workers=min(num, 100)) as executor:
+            executor.map(spawn_client, range(num))
         
         _LOG.info(f"Started {num} clients")
     

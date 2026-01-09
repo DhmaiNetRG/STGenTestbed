@@ -703,6 +703,7 @@ def generate_sensor_stream(cfg: Dict[str, Any]) -> Generator[Tuple[str, Dict, fl
     Generate a stream of sensor readings with physical validation.
     
     Implements:
+    - Parse traffic_pattern for rate configuration
     - Ornstein-Uhlenbeck temperature (temporal correlation)
     - PIR dwell time constraints (hardware limits)
     - MEMS accelerometer noise model
@@ -724,22 +725,51 @@ def generate_sensor_stream(cfg: Dict[str, Any]) -> Generator[Tuple[str, Dict, fl
     num_clients = cfg.get("num_clients", 4)
     duration_timeout = cfg.get("duration", 300)
     sensor_types = cfg.get("sensors", ["temp", "humidity", "motion"])
-    packets_per_client = cfg.get("packets_per_client", 50)
     
     # Weibull parameters for inter-arrival time
     weibull_k = cfg.get("weibull_k", 0.8)      # k < 1 = bursty
     weibull_scale = cfg.get("weibull_scale", 2.0)
-    use_weibull = cfg.get("use_weibull_iat", True)
+    use_weibull = cfg.get("use_weibull_iat", False) # Default to False for steady comparisons
     
     if isinstance(sensor_types, str):
         sensor_types = [sensor_types]
     
-    total_messages = num_clients * packets_per_client
+    # Determine Rate per Client (Hz)
+    traffic_pattern = cfg.get("traffic_pattern", {})
+    # Try to find a rate in sensor stats
+    per_client_rate = 1.0
+    found_rate = False
     
-    # Fallback rate if not using Weibull
-    msgs_per_sec = cfg.get("rate", 1.0)
-    fixed_interval = 1.0 / msgs_per_sec if msgs_per_sec > 0 else 1.0
+    # Check traffic pattern first
+    for s_type, pattern in traffic_pattern.items():
+        if "rate_hz" in pattern:
+            per_client_rate = float(pattern["rate_hz"])
+            found_rate = True
+            break
+            
+    # Fallback to global rate config
+    if not found_rate:
+        per_client_rate = float(cfg.get("rate", 1.0))
+        
+    # Calculate Total Messages
+    # Use duration if provided to calculate total messages, otherwise fallback to packets_per_client
+    if cfg.get("duration"):
+        total_messages = int(duration_timeout * per_client_rate * num_clients)
+        # Add buffer to ensure we cover limits
+        total_messages = int(total_messages * 1.1)
+    else:
+        packets_per_client = cfg.get("packets_per_client", 50)
+        total_messages = num_clients * packets_per_client
     
+    # Calculate Global Interval 
+    # Logic: ORCHESTRATOR SLEEPS AFTER EACH YIELD.
+    # To achieve N * R messages per second total, we must sleep 1 / (N*R) s
+    if per_client_rate > 0:
+        global_rate = per_client_rate * num_clients
+        fixed_interval = 1.0 / global_rate
+    else:
+        fixed_interval = 1.0
+
     start_time = time.time()
     seq_no = 0
     
@@ -763,40 +793,44 @@ def generate_sensor_stream(cfg: Dict[str, Any]) -> Generator[Tuple[str, Dict, fl
         }
     
     # Generate data stream
+    # Round-robin selection of devices (fair scheduling)
+    # Using endless generator logic usually, but here bound by total_messages or time
+    
     while seq_no < total_messages:
         # Safety timeout
         if (time.time() - start_time) > duration_timeout:
-            print(f"\nSensor stream TIMED OUT after {duration_timeout}s")
+            # print(f"\nSensor stream TIMED OUT after {duration_timeout}s")
             break
         
-        for device in devices:
-            if seq_no >= total_messages:
-                break
-            
-            seq_no += 1
-            
-            # Generate sensor data with state
-            sensor_data = generate_sensor_value(device["type"], states[device["id"]])
-            
-            # Calculate inter-arrival time
-            if use_weibull:
-                interval = _weibull_iat(k=weibull_k, scale=weibull_scale)
-            else:
-                interval = fixed_interval
-            
-            data = {
-                "dev_id": device["dev_id"],
-                "ts": time.time(),
-                "seq_no": seq_no,
-                "sensor_data": sensor_data
-            }
-            
-            client_id = f"client_{device['id']}"
-            yield (client_id, data, interval)
+        # In each pass, we pick ONE device to send, then sleep
+        # We rotate through devices
         
-        if seq_no >= total_messages:
-            break
-    
+        device_idx = seq_no % num_clients
+        device = devices[device_idx]
+        
+        seq_no += 1
+        
+        # Generate sensor data with state
+        sensor_data = generate_sensor_value(device["type"], states[device["id"]])
+        
+        # Calculate inter-arrival time
+        if use_weibull:
+            # Note: Weibull scaling needs to adapt to global rate too if used
+            interval = _weibull_iat(k=weibull_k, scale=fixed_interval) 
+        else:
+            interval = fixed_interval
+        
+        data = {
+            "dev_id": device["dev_id"],
+            "ts": time.time(),
+            "seq_no": seq_no, # Global sequence
+            "client_seq": (seq_no // num_clients) + 1, # Per-client sequence approximation
+            "sensor_data": sensor_data
+        }
+        
+        client_id = f"client_{device['id']}"
+        yield (client_id, data, interval)
+            
     elapsed = time.time() - start_time
     print(f"\nSensor stream complete: {seq_no} messages in {elapsed:.1f}s")
 

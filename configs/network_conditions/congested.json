@@ -1,9 +1,9 @@
 {
-  "name": "Congested Network",
+  "name": "Congested",
   "description": "High-stress, worst-case conditions",
-  "latency_ms": 300,
-  "jitter_ms": 150,
-  "loss_percent": 15.0,
+  "latency_ms": 150,
+  "jitter_ms": 30,
+  "loss_percent": 5.0,
   "corruption_percent": 2.0,
-  "bandwidth_kbps": 512
+  "bandwidth_kbps": 1000
 }

@@ -20,10 +20,10 @@ source myenv/bin/activate
 pip install -r requirements.txt
 
 # Run a test
-python -m stgen.main --scenario smart_home --protocol coap
+python -m stgen.main --scenario smart_agriculture --protocol coap
 
 # Compare protocols
-python -m stgen.main --compare coap,srtp --scenario industrial_iot
+python -m stgen.main --compare coap,srtp --scenario smart_agriculture
 
 # List available scenarios
 python -m stgen.main --list-scenarios

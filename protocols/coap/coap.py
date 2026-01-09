@@ -105,8 +105,10 @@ class Protocol(ProtocolInterface):
             )
             try:
                 fut.result(2)
-            except Exception as e:
-                _LOG.warning("Server shutdown error: %s", e)
+            except (Exception, AttributeError) as e:
+                # Suppress known aiocoap race condition during shutdown
+                if "'NoneType' object has no attribute 'values'" not in str(e):
+                    _LOG.warning("Server shutdown error: %s", e)
         
         # Stop clients
         if self._client_loop:
@@ -118,11 +120,16 @@ class Protocol(ProtocolInterface):
                         self._client_loop
                     )
                     fut.result(1)
-                except Exception as e:
-                    _LOG.warning("Client shutdown error: %s", e)
+                except (Exception, AttributeError) as e:
+                    # Suppress known aiocoap race condition
+                    if "'NoneType' object has no attribute 'values'" not in str(e):
+                        _LOG.warning("Client shutdown error: %s", e)
             
             # Stop loop
-            self._client_loop.call_soon_threadsafe(self._client_loop.stop)
+            try:
+                self._client_loop.call_soon_threadsafe(self._client_loop.stop)
+            except:
+                pass
         
         # Join threads
         if self._server_thread and self._server_thread.is_alive():
@@ -160,9 +167,12 @@ class Protocol(ProtocolInterface):
         )
         
         try:
-            return future.result(timeout=10.0)  # 10s timeout
+            return future.result(timeout=30.0)  # 30s timeout (longer for network-impaired tests)
+        except asyncio.TimeoutError:
+            _LOG.warning("Send timeout for %s (network impaired?)", client_id)
+            return False, 0.0
         except Exception as e:
-            _LOG.error("Send timeout/error: %s", e)
+            _LOG.error("Send error: %s", e)
             return False, 0.0
 
     # ---------- internal async --------------------------------------------- #

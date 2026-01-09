@@ -1,9 +1,9 @@
 {
-  "name": "Perfect Network",
+  "name": "Perfect",
   "description": "Baseline: no latency, no loss, no corruption",
-  "latency_ms": 0,
+  "latency_ms": 1,
   "jitter_ms": 0,
   "loss_percent": 0.0,
   "corruption_percent": 0.0,
-  "bandwidth_kbps": 1000000
+  "bandwidth_kbps": 0
 }
