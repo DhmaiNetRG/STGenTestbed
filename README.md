@@ -1,6 +1,6 @@
 # STGen: IoT Protocol Testing and Evaluation Framework
 
-**Status**: ✅ Production Ready | **License**: MIT | **Version**: 2.0
+**License**: MIT | **Version**: 2.0
 
 ---
 
@@ -21,28 +21,73 @@ STGen is a comprehensive, **research-grade** framework for testing, validating, 
 
 ---
 
-## Quick Start
+##  Getting Started (Zero to Running)
 
-### Minimum Requirements
-- Python 3.8+
-- Node.js 16+
-- 4 GB RAM
-- Linux/macOS/Windows with Docker
+Follow these steps to set up the STGen environment from scratch.
 
-### Installation & Run
+###  Install Prerequisites
+
+Before you begin, ensure you have the following installed:
+*   **Linux (Ubuntu/Debian recommended)** or **macOS**. (Windows is not supported)
+*   **Python 3.8+**: [Download Python](https://www.python.org/downloads/)
+*   **Node.js 16+**: [Download Node.js](https://nodejs.org/) (Required for the Dashboard)
+*   **Mosquitto MQTT Broker**: Essential for protocol messaging.
+
+#### Installing Mosquitto (Required)
+*   **Ubuntu/Debian**:
+    ```bash
+    sudo apt update
+    sudo apt install mosquitto mosquitto-clients
+    # Ensure it's running
+    sudo systemctl enable mosquitto
+    sudo systemctl start mosquitto
+    ```
+*   **macOS**:
+    ```bash
+    brew install mosquitto
+    brew services start mosquitto
+    ```
+
+---
+
+###  Setup Python Environment
+
+Open your terminal and navigate to the project folder.
+
+#### 1. Create Virtual Environment
+Isolates dependencies from your system.
 
 ```bash
-# Navigate to project
-cd STGen_Future_Present
-
-# Start the system
-./start_all.sh          # Linux/macOS
-start_all.bat           # Windows
-docker-compose up -d    # Docker (any OS)
-
-# Access web dashboard
-open http://localhost:3000
+python3 -m venv myenv
+source myenv/bin/activate
 ```
+
+#### 2. Install Dependencies
+Installs STGen core, dashboard backend, and protocol libs.
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+---
+
+###  Run the System
+
+We provide a single startup script to launch the Backend and Frontend.
+
+```bash
+chmod +x start_all.sh  # Make executable (first time only)
+./start_all.sh
+```
+
+---
+
+###  Access the Dashboard
+
+Open your web browser and go to:
+👉 **[http://localhost:3000](http://localhost:3000)**
+
+You can now create experiments, simulate failures, and visualize real-time metrics.
 
 ---
 
@@ -95,7 +140,7 @@ source myenv/bin/activate
 python -m stgen.main --scenario smart_agriculture --protocol mqtt --duration 30
 
 # Compare protocols
-python -m stgen.main --compare mqtt,coap,srtp --scenario smart_agriculture
+python -m stgen.main --compare mqtt,coap --scenario smart_agriculture
 
 # With failure injection
 python -m stgen.main --protocol mqtt --inject-failures 0.1 --duration 60 --num-clients 100
@@ -181,11 +226,6 @@ Interactive API docs available at: **http://localhost:8000/docs**
 start_all.bat           # Windows
 ```
 
-### Docker (Recommended)
-```bash
-docker-compose up -d
-```
-
 ---
 
 ## Contributing
@@ -228,7 +268,6 @@ If you use STGen in your research, please cite:
 ---
 
 ## System Requirements
-
 ### Minimum
 - **OS**: Linux, macOS, or Windows (via WSL2/Docker)
 - **CPU**: 2 cores

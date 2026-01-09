@@ -33,8 +33,6 @@
 ##! @subsection web_ui Web Dashboard
 ##! @code
 ##! ./start_all.sh          # Linux/macOS
-##! start_all.bat           # Windows
-##! docker-compose up -d    # Docker
 ##! @endcode
 ##! 
 ##! Then open http://localhost:3000

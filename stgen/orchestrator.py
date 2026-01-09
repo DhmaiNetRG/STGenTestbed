@@ -24,6 +24,8 @@ from typing import Iterable, Tuple, Dict, Any
 
 _LOG = logging.getLogger("orchestrator")
 
+from .failure_injector import FailureInjector, wrap_send_with_failures
+
 class Orchestrator:
     ##! @class Orchestrator
     ##! @brief Main orchestration engine for STGen
@@ -71,6 +73,15 @@ class Orchestrator:
             "err": []
         }
     
+    def apply_failure_injection(self, injector: FailureInjector):
+        """
+        Wrap the protocol's send_data method with failure injection logic.
+        """
+        _LOG.info("Applying failure injection to protocol")
+        # Monkey patch the send_data method of the protocol instance
+        original_send = self.protocol.send_data
+        self.protocol.send_data = wrap_send_with_failures(original_send, injector)
+
     def run_test(self, stream: Iterable[Tuple[str, Dict, float]]) -> bool:
         """
         Execute the full test lifecycle.

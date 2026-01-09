@@ -58,11 +58,17 @@ class FailureInjector:
                 - message_corruption: float (0.0-1.0)
                 - latency_spike: {probability, duration_ms}
         """
-        self.cfg = cfg.get("failure_injection", {})
-        self.packet_loss_rate = self.cfg.get("packet_loss", 0.0)
-        self.corruption_rate = self.cfg.get("message_corruption", 0.0)
+        self.cfg = cfg  # Store the whole config, or look for 'failure_injection' key
+        # Check if 'failure_injection' exists as a dict, or if we passed flat args
+        fi_cfg = cfg.get("failure_injection", {})
         
-        self.crash_times = self.cfg.get("client_crashes", [])
+        # If 'failure_rate' is at top level (e.g. from CLI overrides), use it for packet loss
+        top_loss = cfg.get("failure_rate", 0.0)
+        
+        self.packet_loss_rate = fi_cfg.get("packet_loss", top_loss)
+        self.corruption_rate = fi_cfg.get("message_corruption", 0.0)
+        
+        self.crash_times = fi_cfg.get("client_crashes", [])
         self.partition_cfg = self.cfg.get("network_partition", None)
         self.latency_spike_cfg = self.cfg.get("latency_spike", None)
         
@@ -72,9 +78,27 @@ class FailureInjector:
         
         self.start_time = time.time()
         self.events: List[FailureEvent] = []
+        self.protocol = None
         
         _LOG.info("Failure Injector initialized: loss=%.1f%%, corruption=%.1f%%",
                   self.packet_loss_rate * 100, self.corruption_rate * 100)
+
+    def attach_protocol(self, protocol_instance):
+        """
+        Attach protocol instance to control socket/client lifecycles.
+        """
+        self.protocol = protocol_instance
+    
+    def start(self):
+        """Start failure injector (no-op for now unless running a background thread)."""
+        self.start_time = time.time()
+        _LOG.info("Failure Injection started")
+    
+    def stop(self):
+        """Stop failure injector (no-op)."""
+        _LOG.info("Failure Injection stopped")
+        summary = self.get_failure_summary()
+        _LOG.info("Failure Summary: %s", summary)
     
     def should_drop_packet(self, client_id: str) -> bool:
         """

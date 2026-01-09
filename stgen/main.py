@@ -83,6 +83,11 @@ def parse_arguments():
     parser.add_argument("--validate", action="store_true", help="Run validation checks on results")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
     
+    # Optional parameters to override config/default settings
+    parser.add_argument("--inject-failures", type=float, help="Failure injection rate (0.0 to 1.0)")
+    parser.add_argument("--duration", type=int, help="Test duration in seconds")
+    parser.add_argument("--num-clients", type=int, help="Number of clients to simulate")
+
     return parser.parse_args()
 
 
@@ -133,6 +138,7 @@ def run_single_test(cfg: dict) -> bool:
     # --- Define variables ---
     emulator = None
     orch = None
+    injector = None
     ok = False
     
     try:
@@ -154,14 +160,31 @@ def run_single_test(cfg: dict) -> bool:
         # --- 2. CREATE ORCHESTRATOR ---
         orch = Orchestrator(cfg["protocol"], cfg)
 
-        # --- (FailureInjector code could go here if you want to use it) ---
+        # --- 3. FAILURE INJECTION ---
+        injector = None
+        if "failure_rate" in cfg and cfg["failure_rate"] > 0:
+            _LOG.info(f"Initializing failure injector with rate: {cfg['failure_rate']}")
+            try:
+                from .failure_injector import FailureInjector
+                injector = FailureInjector(cfg)
+                # Pass the protocol instance to the injector so it can kill clients/servers
+                injector.attach_protocol(orch.protocol)
+                injector.start()
+                
+                # Apply the failure injection wrapper to the orchestrator's protocol
+                orch.apply_failure_injection(injector)
+                
+            except ImportError:
+                _LOG.warning("FailureInjector module not found.")
+            except Exception as e:
+                _LOG.error(f"Failed to start failure injector: {e}")
         
-        # --- 3. GENERATE STREAM ---
+        # --- 4. GENERATE STREAM ---
         stream = generate_sensor_stream(cfg)
         
-        # --- 4. RUN TEST ---
+        # --- 5. RUN TEST ---
         ok = orch.run_test(stream)
-
+    
     except KeyboardInterrupt:
         _LOG.warning("Test interrupted by user")
         ok = False
@@ -169,8 +192,10 @@ def run_single_test(cfg: dict) -> bool:
         _LOG.exception("Test failed")
         ok = False
     finally:
-        # --- 5. CLEANUP (CRITICAL) ---
+        # --- 6. CLEANUP (CRITICAL) ---
         _LOG.info("Cleaning up test...")
+        if injector:
+            injector.stop()
         if orch:
             orch.protocol.stop()
         if emulator:
@@ -266,6 +291,14 @@ def main():
     # Add validation flag
     if args.validate:
         cfg["validate"] = True
+
+    # Override config with optional CLI arguments if provided
+    if args.inject_failures is not None:
+        cfg["failure_rate"] = args.inject_failures
+    if args.duration is not None:
+        cfg["duration"] = args.duration
+    if args.num_clients is not None:
+        cfg["num_sensors"] = args.num_clients
     
     # Run comparison or single test
     if args.compare:
