@@ -26,6 +26,19 @@ if (-not (Test-Path $LogsDir)) {
     New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
 }
 
+# Check if Python is installed
+try {
+    $pythonVersion = & python --version 2>&1
+    Write-Host "[+] Found Python: $pythonVersion" -ForegroundColor Green
+}
+catch {
+    Write-Host "[ERROR] Python is not installed or not in PATH" -ForegroundColor Red
+    Write-Host "[*] Please install Python 3.12+ from https://www.python.org/downloads/" -ForegroundColor Yellow
+    Write-Host "[*] Make sure to check 'Add Python to PATH' during installation" -ForegroundColor Yellow
+    Read-Host "Press Enter to exit"
+    exit 1
+}
+
 # Check if virtual environment exists
 if (-not (Test-Path $Venv)) {
     Write-Host "[*] Virtual environment not found. Creating..." -ForegroundColor Yellow
