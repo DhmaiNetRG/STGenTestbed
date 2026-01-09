@@ -1,7 +1,17 @@
-"""
-Failure Injection Framework for STGen
-Simulates realistic network failures and client crashes to test protocol robustness.
-"""
+##! @file failure_injector.py
+##! @brief Failure Injection Framework for Testing Protocol Robustness
+##! 
+##! @details
+##! Simulates realistic network failures and client crashes:
+##! - Packet loss (random or targeted)
+##! - Client crashes and recoveries
+##! - Network partitions
+##! - Data corruption
+##! - Byzantine failures
+##!
+##! @author STGen Development Team
+##! @version 2.0
+##! @date 2024
 
 import random
 import time
@@ -14,25 +24,27 @@ _LOG = logging.getLogger("failure_injector")
 
 @dataclass
 class FailureEvent:
-    """Represents a single failure event."""
-    time_sec: float
-    failure_type: str  # "packet_loss", "client_crash", "network_partition", "corruption"
-    target: Optional[str] = None  # Client ID or None for global
-    duration_sec: Optional[float] = None
-    metadata: Dict[str, Any] = None
+    ##! @struct FailureEvent
+    ##! @brief Represents a single failure event
+    time_sec: float          ##! When failure occurs (seconds into test)
+    failure_type: str        ##! Type: packet_loss, client_crash, network_partition, corruption
+    target: Optional[str] = None  ##! Target client ID or None for global
+    duration_sec: Optional[float] = None  ##! How long failure lasts
+    metadata: Dict[str, Any] = None  ##! Additional failure parameters
 
 
 class FailureInjector:
-    """
-    Injects realistic failures during protocol testing.
-    
-    Supported failure modes:
-    - Packet loss (random or targeted)
-    - Client crashes and restarts
-    - Network partitions (split-brain)
-    - Message corruption
-    - Latency spikes
-    """
+    ##! @class FailureInjector
+    ##! @brief Injects realistic failures during protocol testing
+    ##! @details
+    ##! Supported failure modes:
+    ##! - Packet loss (random or targeted)
+    ##! - Client crashes and recovery
+    ##! - Network partitions
+    ##! - Client crashes and restarts
+    ##! - Network partitions (split-brain)
+    ##! - Message corruption
+    ##! - Latency spikes
     
     def __init__(self, cfg: Dict[str, Any]):
         """

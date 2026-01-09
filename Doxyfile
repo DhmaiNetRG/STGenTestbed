@@ -1,0 +1,111 @@
+# Doxyfile for STGen - IoT Protocol Testing Framework
+# Auto-generated documentation configuration
+
+PROJECT_NAME           = "STGen - IoT Protocol Testing Framework"
+PROJECT_NUMBER         = "2.0"
+PROJECT_BRIEF          = "Comprehensive testing framework for IoT protocols"
+
+INPUT                  = stgen stgen-ui protocols DOXYGEN_MAINPAGE.h
+FILE_PATTERNS          = *.py *.h *.md
+RECURSIVE              = YES
+EXCLUDE                = myenv venv node_modules .git __pycache__
+EXCLUDE_PATTERNS       = */test/* */__pycache__/* *.pyc
+
+OUTPUT_DIRECTORY       = docs/doxygen
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+GENERATE_MAN           = NO
+
+HTML_OUTPUT            = html
+HTML_FILE_EXTENSION    = .html
+HTML_HEADER            = 
+HTML_FOOTER            = 
+HTML_STYLESHEET        = 
+HTML_EXTRA_STYLESHEET  = 
+
+SEARCH_INCLUDE_PATH    = YES
+INCLUDE_PATH           = .
+STRIP_FROM_PATH        = .
+STRIP_FROM_INC_PATH    = 
+
+# Python specific
+FILTER_PATTERNS        = *.py=python
+EXTENSION_MAPPING      = py=Python
+
+# Documentation
+EXTRACT_ALL            = NO
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+HIDE_UNDOC_MEMBERS     = NO
+HIDE_UNDOC_CLASSES     = NO
+
+# Comments
+JAVADOC_AUTOBRIEF      = YES
+QT_AUTOBRIEF           = NO
+MULTILINE_CPP_IS_BRIEF = NO
+
+# Markdown support
+USE_MDFILE_AS_MAINPAGE = README.md
+MARKDOWN_SUPPORT       = YES
+
+# Graphs
+CLASS_DIAGRAMS         = YES
+HAVE_DOT               = YES
+DOT_PATH               = /usr/bin/
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+
+# Output
+GENERATE_TREEVIEW      = YES
+TREEVIEW_WIDTH         = 250
+EPS_PATH               = /usr/bin/
+
+# Search
+SEARCHENGINE           = YES
+SERVER_BASED_SEARCH    = NO
+
+# Warnings
+QUIET                  = NO
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_BEFORE_BRIEF = NO
+WARN_FORMAT            = "$file:$line: $text"
+
+# Sorting
+SORT_MEMBER_DOCS       = YES
+SORT_BY_SCOPE_NAME     = NO
+
+# Aliases
+ALIASES                = "class=\class"
+ALIASES                += "struct=\struct"
+ALIASES                += "enum=\enum"
+ALIASES                += "file=\file"
+ALIASES                += "brief=\brief"
+ALIASES                += "param=\param"
+ALIASES                += "return=\return"
+ALIASES                += "throws=\throws"
+ALIASES                += "author=\author"
+ALIASES                += "version=\version"
+ALIASES                += "date=\date"
+ALIASES                += "details=\details"
+
+# Input encoding
+INPUT_ENCODING         = UTF-8
+
+# Source code
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = YES
+STRIP_CODE_COMMENTS    = NO
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+REFERENCES_LINK_SOURCE = YES
+
+# Optimize
+OPTIMIZE_OUTPUT_FOR_C  = NO
+OPTIMIZE_OUTPUT_JAVA   = NO
+
+# Maximum
+MAX_INITIALIZERS       = 30
+
+# Reproducible build
+REPRODUCIBLE_BUILD     = YES

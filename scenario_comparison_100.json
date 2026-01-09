@@ -1,0 +1,19 @@
+{
+  "name": "Comparison_100Nodes",
+  "description": "Cross-protocol comparison test",
+  "protocol": "placeholder",
+  "mode": "active",
+  "server_ip": "127.0.0.1",
+  "server_port": 5000,
+  "num_clients": 100,
+  "duration": 15,
+  "sensors": [
+    "temp"
+  ],
+  "traffic_pattern": {
+    "temp": {
+      "rate_hz": 10.0,
+      "burst": false
+    }
+  }
+}

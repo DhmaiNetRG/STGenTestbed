@@ -1,0 +1,54 @@
+% Table showing distributed deployment validation
+\begin{table}[h!]
+\centering
+\caption{Distributed Deployment Validation Results}
+\label{tab:dist-validation}
+\begin{tabular}{l c c c}
+\hline
+\textbf{Metric} & \textbf{Single Machine} & \textbf{Distributed} & \textbf{Observation} \\ \hline
+Messages Generated & 55 & 2,757 & 50× Higher Load \\
+Network Latency & <0.5 ms & 3.38 ms & Real LAN \\
+Packet Loss & 0\% & 3.9\% & Realistic Conditions \\
+Core Role & Sensor + Broker & Broker Only & Workload Offloaded \\
+Sensor Node & Same Machine & Remote (LAN) & Physical Distribution \\
+Network Interface & Loopback (lo) & Ethernet (eth0) & Real Traffic \\
+\hline
+\end{tabular}
+\end{table}
+
+% Alternative: Focus on workload distribution
+\begin{table}[h!]
+\centering
+\caption{Workload Distribution: Sensor Node vs Core Node}
+\label{tab:workload-dist}
+\begin{tabular}{l c c}
+\hline
+\textbf{Component} & \textbf{Sensor Node (Laptop)} & \textbf{Core Node} \\ \hline
+Messages Sent & 2,757 & 0 \\
+Messages Received & 0 & 2,649 \\
+Sensor Generation & \checkmark & --- \\
+MQTT Broker & --- & \checkmark \\
+Network Latency & 3.38 ms avg & 3.38 ms avg \\
+Packet Loss & 3.9\% & 3.9\% \\
+Connection Type & Ethernet Client & Ethernet Server \\
+\hline
+\multicolumn{3}{l}{\small\textit{Demonstrates successful workload distribution across physical machines}} \\
+\end{tabular}
+\end{table}
+
+% Simple validation statement
+\begin{table}[h!]
+\centering
+\caption{Distributed Architecture Validation}
+\label{tab:dist-arch-validation}
+\begin{tabular}{l l}
+\hline
+\textbf{Requirement} & \textbf{Result} \\ \hline
+Multi-machine communication & \checkmark~Validated (LAN: 192.168.1.108) \\
+Workload distribution & \checkmark~2,757 messages from remote node \\
+Real network conditions & \checkmark~3.38 ms latency, 3.9\% loss \\
+Broker functionality & \checkmark~Core received 2,649 messages \\
+Scalability potential & \checkmark~Multiple sensor nodes supported \\
+\hline
+\end{tabular}
+\end{table}

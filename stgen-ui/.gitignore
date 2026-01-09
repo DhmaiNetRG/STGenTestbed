@@ -1,0 +1,26 @@
+# Backend
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.log
+*.sqlite3
+venv/
+env/
+
+# Frontend
+node_modules/
+build/
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Results
+results/ui_experiments/

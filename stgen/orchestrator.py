@@ -1,9 +1,18 @@
 
-# stgen/orchestrator.py
-"""
-Test Orchestration Engine (Fixed for Distributed Mode)
-Manages protocol lifecycle, data feeding, and metrics collection.
-"""
+##! @file orchestrator.py
+##! @brief Test Orchestration Engine for STGen
+##! 
+##! @details
+##! Core orchestration component responsible for:
+##! - Protocol lifecycle management (init, start, feed, measure, stop)
+##! - Configuration loading and validation
+##! - Real-time data feeding and metric collection
+##! - Distributed mode support
+##! - Error handling and recovery
+##!
+##! @author STGen Development Team
+##! @version 2.0
+##! @date 2024
 
 import importlib
 import json
@@ -16,19 +25,25 @@ from typing import Iterable, Tuple, Dict, Any
 _LOG = logging.getLogger("orchestrator")
 
 class Orchestrator:
-    """
-    Main orchestration engine for STGen.
-    Handles test lifecycle: load → start → feed → measure → stop.
-    """
+    ##! @class Orchestrator
+    ##! @brief Main orchestration engine for STGen
+    ##! @details
+    ##! Handles complete test lifecycle:
+    ##! 1. Load protocol module
+    ##! 2. Initialize with configuration
+    ##! 3. Start protocol instance
+    ##! 4. Feed data streams
+    ##! 5. Collect metrics
+    ##! 6. Stop and cleanup
     
     def __init__(self, protocol_name: str, cfg: Dict[str, Any]):
-        """
-        Initialize orchestrator with a protocol.
-        
-        Args:
-            protocol_name: Name of protocol module in protocols/
-            cfg: Configuration dictionary
-        """
+        ##! @brief Initialize orchestrator with a protocol
+        ##! 
+        ##! @param protocol_name Name of protocol module in protocols/
+        ##! @param cfg Configuration dictionary with protocol parameters
+        ##! 
+        ##! @throws ImportError If protocol module not found
+        ##! @throws ValueError If configuration is invalid
         self.protocol_name = protocol_name
         self.cfg = cfg
         self.node_id = cfg.get("node_id", "core")

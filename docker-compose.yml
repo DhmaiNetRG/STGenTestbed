@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  stgen-ui:
+    build: .
+    container_name: stgen-web-ui
+    ports:
+      - "3000:3000"  # Frontend
+      - "8000:8000"  # Backend API
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./results:/home/stgen/results  # Persist results
+      - ./stgen-ui:/home/stgen/stgen-ui  # Live code reload (optional)
+    cap_add:
+      - NET_ADMIN  # Required for network emulation (tc/netem)
+    networks:
+      - stgen-network
+    restart: unless-stopped
+
+networks:
+  stgen-network:
+    driver: bridge

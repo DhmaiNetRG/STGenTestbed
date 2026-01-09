@@ -1,11 +1,24 @@
 
-"""
-STGen CLI Entry Point - Enhanced Version
-Usage: 
-  python -m stgen.main <config.json>
-  python -m stgen.main --scenario smart_home --protocol YOUR_PROTOCOL
-  python -m stgen.main --compare coap,srtp --scenario industrial_iot
-"""
+##! @file main.py
+##! @brief STGen CLI Entry Point - Main orchestration module
+##! 
+##! @details
+##! Provides command-line interface for STGen framework with support for:
+##! - Configuration-based experimentation
+##! - Scenario-based testing
+##! - Protocol comparison
+##! - Real-time monitoring
+##!
+##! @usage
+##! @code
+##! python -m stgen.main <config.json>
+##! python -m stgen.main --scenario smart_home --protocol coap
+##! python -m stgen.main --compare coap,srtp --scenario industrial_iot
+##! @endcode
+##!
+##! @author STGen Development Team
+##! @version 2.0
+##! @date 2024
 
 import json
 import logging
@@ -21,7 +34,7 @@ from .failure_injector import FailureInjector
 from .validator import validate_protocol_results
 from .network_emulator import NetworkEmulator
 
-# Configure logging
+##! Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
@@ -32,7 +45,13 @@ _LOG = logging.getLogger("stgen.main")
 
 
 def parse_arguments():
-    """Parse command line arguments."""
+    ##! @brief Parse and validate command-line arguments
+    ##! @return argparse.Namespace with parsed arguments
+    ##! @details
+    ##! Supports multiple input modes:
+    ##! - Config file: Direct configuration from JSON
+    ##! - Scenario mode: Pre-defined test scenarios
+    ##! - Comparison mode: Multiple protocols side-by-side
     parser = argparse.ArgumentParser(
         description="STGen - IoT Protocol Testing Framework",
         formatter_class=argparse.RawDescriptionHelpFormatter,

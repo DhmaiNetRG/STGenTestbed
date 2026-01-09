@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  stgen-ui:
+    build:
+      context: .
+      # Use apko to build the image instead of Dockerfile
+      # Uncomment the line below to use apko:
+      # dockerfile: Dockerfile.apko
+      dockerfile: Dockerfile
+    container_name: stgen-web-ui
+    ports:
+      - "3000:3000"  # Frontend
+      - "8000:8000"  # Backend API
+    volumes:
+      - ./results:/home/stgen/results
+      - ./stgen:/home/stgen/app/stgen
+      - ./stgen-ui/frontend/src:/home/stgen/app/stgen-ui/frontend/src
+      - ./stgen-ui/backend:/home/stgen/app/stgen-ui/backend
+    environment:
+      - PYTHONUNBUFFERED=1
+      - NODE_ENV=production
+    cap_add:
+      - NET_ADMIN  # For network emulation (tc/netem)
+    restart: unless-stopped
+    networks:
+      - stgen-network
+
+networks:
+  stgen-network:
+    driver: bridge

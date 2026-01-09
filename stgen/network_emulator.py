@@ -1,9 +1,17 @@
-
-
-# stgen/network_emulator.py
-"""
-Network condition emulation with profile support.
-"""
+##! @file network_emulator.py
+##! @brief Network Condition Emulation Module
+##! 
+##! @details
+##! Provides realistic network condition emulation using Linux tc (traffic control).
+##! Supports:
+##! - Latency simulation (constant + jitter)
+##! - Packet loss injection
+##! - Bandwidth throttling
+##! - JSON profile-based configuration
+##!
+##! @author STGen Development Team
+##! @version 2.0
+##! @date 2024
 
 import subprocess
 import logging
@@ -15,16 +23,25 @@ _LOG = logging.getLogger("network_emulator")
 
 
 class NetworkEmulator:
-    """Apply realistic network conditions from JSON profiles."""
+    ##! @class NetworkEmulator
+    ##! @brief Apply realistic network conditions from profiles
+    ##! @details
+    ##! Uses Linux tc/netem for network emulation
+    ##! Profiles: perfect, wifi, 4g, lorawan, congested, intermittent
     
     def __init__(self, interface: str = "eth0"):
+        ##! @brief Initialize network emulator
+        ##! @param interface Network interface name (default: eth0)
         self.interface = interface
         self.enabled = False
         self.profile_name = None
     
     @classmethod
     def from_profile(cls, profile_path: str, interface: str = "eth0"):
-        """Load network conditions from profile file."""
+        ##! @brief Load network conditions from profile file
+        ##! @param profile_path Path to JSON profile
+        ##! @param interface Network interface to apply to
+        ##! @return NetworkEmulator instance configured with profile
         emulator = cls(interface)
         profile = json.loads(Path(profile_path).read_text())
         

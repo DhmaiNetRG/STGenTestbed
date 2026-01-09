@@ -1,0 +1,23 @@
+.
+├── backend
+│   ├── app.py
+│   ├── requirements.txt
+│   └── stgen_controller.py
+├── FEATURES.md
+├── frontend
+│   ├── package.json
+│   ├── public
+│   │   └── index.html
+│   └── src
+│       ├── api.js
+│       ├── App.jsx
+│       ├── components
+│       ├── index.js
+│       └── pages
+├── QUICKSTART.md
+├── README.md
+├── setup.sh
+├── start.sh
+└── structure.txt
+
+7 directories, 14 files

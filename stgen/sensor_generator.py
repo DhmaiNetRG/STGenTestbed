@@ -1,29 +1,43 @@
-# # # stgen/sensor_generator.py
-# # """
-# # Multi-Sensor Traffic Stream Generator
-# # Generates realistic IoT sensor data streams with varied timing patterns.
-# # """
+##! @file sensor_generator.py
+##! @brief Multi-Sensor Traffic Stream Generator for IoT Testing
+##! 
+##! @details
+##! Generates realistic IoT sensor data streams with:
+##! - Multiple sensor types (temperature, humidity, GPS, motion, etc.)
+##! - Varied timing patterns and inter-packet delays
+##! - Realistic packet sizes and payloads
+##! - Configurable client counts and duration
+##!
+##! @author STGen Development Team
+##! @version 2.0
+##! @date 2024
 
-# # import random
-# # import time
-# # from typing import Generator, Tuple, Dict, Any
+import random
+import time
+from typing import Generator, Tuple, Dict, Any
 
 
-# # def generate_sensor_stream(cfg: Dict[str, Any]) -> Generator[Tuple[str, Dict[str, Any], float], None, None]:
-# #     """
-# #     Generate realistic sensor data stream.
-    
-# #     Args:
-# #         cfg: Configuration with keys:
-# #             - duration: Test duration in seconds
-# #             - num_clients: Number of sensor clients
-# #             - sensors: List of sensor types
-    
-# #     Yields:
-# #         Tuple of (client_id, data_dict, timeout)
-# #         where timeout is inter-packet delay
-# #     """
-# #     dur = cfg.get("duration", 30)
+def generate_sensor_stream(cfg: Dict[str, Any]) -> Generator[Tuple[str, Dict[str, Any], float], None, None]:
+    ##! @brief Generate realistic sensor data stream
+    ##! 
+    ##! @param cfg Configuration dictionary containing:
+    ##!        - duration: Test duration in seconds
+    ##!        - num_clients: Number of sensor clients
+    ##!        - sensors: List of sensor types
+    ##! 
+    ##! @return Generator yielding (client_id, data_dict, timeout)
+    ##!         where timeout is inter-packet delay in seconds
+    ##! 
+    ##! @details
+    ##! Sensor types supported:
+    ##! - temperature: Float 15-45°C
+    ##! - humidity: Float 20-90%
+    ##! - gps: Lat/Lon coordinates
+    ##! - motion: Boolean motion detection
+    ##! - light: Float 0-1000 lux
+    ##! - camera: Base64 encoded image data
+    ##! - device: Device metrics (CPU, memory)
+    pass
 # #     num = cfg.get("num_clients", 4)
 # #     sensors = cfg.get("sensors", ["temp", "gps", "device", "camera"])
     

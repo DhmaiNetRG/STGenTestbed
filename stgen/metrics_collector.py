@@ -1,8 +1,17 @@
-# stgen/metrics_collector.py
-"""
-Advanced Metrics Collection and Statistical Analysis
-Handles efficient collection and calculation of performance metrics with minimal overhead.
-"""
+##! @file metrics_collector.py
+##! @brief Advanced Metrics Collection and Statistical Analysis
+##! 
+##! @details
+##! Provides efficient real-time metrics collection with:
+##! - Latency percentiles (p50, p75, p90, p95, p99)
+##! - Throughput and packet loss calculation
+##! - Histogram-based distributions
+##! - Memory-efficient circular buffers
+##! - Real-time aggregation
+##!
+##! @author STGen Development Team
+##! @version 2.0
+##! @date 2024
 
 import logging
 import time
@@ -16,14 +25,17 @@ _LOG = logging.getLogger("metrics_collector")
 
 @dataclass
 class Percentile:
-    """Container for percentile value."""
-    p50: float
-    p75: float
-    p90: float
-    p95: float
-    p99: float
+    ##! @struct Percentile
+    ##! @brief Container for percentile latency values
+    p50: float  ##! Median latency (50th percentile)
+    p75: float  ##! 75th percentile
+    p90: float  ##! 90th percentile
+    p95: float  ##! 95th percentile (SLA threshold)
+    p99: float  ##! 99th percentile (tail latency)
     
     def to_dict(self) -> Dict[str, float]:
+        ##! @brief Convert to dictionary format
+        ##! @return Dictionary representation of percentiles
         return asdict(self)
 
 

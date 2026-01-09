@@ -1,7 +1,17 @@
-"""
-Automated Protocol Validation Framework
-Checks protocol compliance with IoT communication best practices.
-"""
+##! @file validator.py
+##! @brief Automated Protocol Validation Framework
+##! 
+##! @details
+##! Validates protocol implementations against IoT best practices:
+##! - Latency requirements and SLA compliance
+##! - Packet loss tolerance
+##! - Throughput capabilities
+##! - Resource usage (CPU, memory, power)
+##! - Security and reliability metrics
+##!
+##! @author STGen Development Team
+##! @version 2.0
+##! @date 2024
 
 import logging
 from typing import Dict, Any, List
@@ -12,26 +22,26 @@ _LOG = logging.getLogger("validator")
 
 @dataclass
 class ValidationResult:
-    """Result of a single validation check."""
-    check_name: str
-    passed: bool
-    message: str
-    severity: str  # "critical", "warning", "info"
-    metric_value: Any = None
+    ##! @struct ValidationResult
+    ##! @brief Result of a single validation check
+    check_name: str     ##! Name of the validation check
+    passed: bool        ##! Whether check passed
+    message: str        ##! Human-readable message
+    severity: str       ##! "critical", "warning", "info"
+    metric_value: Any = None  ##! Measured metric value
 
 
 class ProtocolValidator:
-    """
-    Validates protocol implementation against IoT best practices.
-    
-    Checks include:
-    - Latency requirements
-    - Packet loss tolerance
-    - Throughput capabilities
-    - Order preservation
-    - Concurrency handling
-    - Failure recovery
-    """
+    ##! @class ProtocolValidator
+    ##! @brief Validates protocol implementation against IoT best practices
+    ##! @details
+    ##! Checks include:
+    ##! - Latency SLA compliance
+    ##! - Packet loss tolerance
+    ##! - Throughput capabilities
+    ##! - Order preservation
+    ##! - Concurrency handling
+    ##! - Failure recovery
     
     def __init__(self, results: Dict[str, Any], qos_requirements: Dict[str, Any] = None):
         """
