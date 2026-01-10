@@ -25,6 +25,6 @@
         "packet_loss": 0.05,  
         "client_crashes": []
     },
-    "network_profile": "congested"
+    "network_profile": "agri_bad"
 
 }

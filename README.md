@@ -108,7 +108,7 @@ STGen_Future_Present/
 │   ├── mqtt/                   # MQTT (pub/sub)
 │   ├── coap/                   # CoAP (REST-like)
 │   ├── srtp/                   # SRTP (real-time)
-│   └── my_udp/                 # Custom UDP
+│   └── custom_udp/             # Custom UDP
 │
 ├── stgen-ui/                   # Web Dashboard
 │   ├── backend/                # FastAPI server
@@ -143,7 +143,7 @@ python -m stgen.main --scenario smart_agriculture --protocol mqtt --duration 30
 python -m stgen.main --compare mqtt,coap --scenario smart_agriculture
 
 # With failure injection
-python -m stgen.main --protocol mqtt --inject-failures 0.1 --duration 60 --num-clients 100
+python3 -m stgen.main --protocol mqtt --inject-failures 0.1 --duration 60 --num-clients 100 --scenario connected_vehicle
 
 # List available options
 python -m stgen.main --help

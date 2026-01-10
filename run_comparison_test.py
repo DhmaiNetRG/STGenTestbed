@@ -157,7 +157,7 @@ def main():
     args = parser.parse_args()
     
     # Setup
-    protocols = ["mqtt", "coap", "my_udp"]
+    protocols = ["mqtt", "coap", "custom_udp"]
     
     print(f"Generating scenario for {args.nodes} nodes, {args.duration}s duration...")
     scenario_file, config = create_comparison_scenario(args.nodes, args.duration)

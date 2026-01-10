@@ -1,9 +1,0 @@
-{
-  "protocol": "my_udp",
-  "mode": "passive",
-  "server_ip": "127.0.0.1",
-  "server_port": 6000,
-  "num_clients": 4,
-  "duration": 10,
-  "sensors": ["temp", "gps", "device", "camera"]
-}

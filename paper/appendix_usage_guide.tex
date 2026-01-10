@@ -1,0 +1,121 @@
+% Appendix: STGen Usage Guide
+% IEEE/Elsevier Format
+
+\appendix
+
+\section{STGen Testbed Usage Guide}
+\label{appendix:usage}
+
+This appendix demonstrates how to reproduce the experimental results presented in this paper using the STGen framework.
+
+\subsection{Installation}
+
+\subsubsection{System Requirements}
+\begin{itemize}
+    \item Linux (Ubuntu 20.04+)
+    \item Python 3.8+
+    \item Sudo access for network emulation (\texttt{tc} command)
+\end{itemize}
+
+\subsubsection{Setup}
+\begin{lstlisting}[language=bash, basicstyle=\footnotesize\ttfamily]
+git clone https://github.com/[repo]/STGen.git
+cd STGen
+python3 -m venv myenv
+source myenv/bin/activate
+pip install -r requirements.txt
+make -C protocols/custom_udp  # Build custom UDP binaries
+\end{lstlisting}
+
+\subsection{Reproducing Protocol Comparison (Table~\ref{tab:agri-comp})}
+
+\subsubsection{Test MQTT}
+\begin{lstlisting}[language=bash, basicstyle=\footnotesize\ttfamily]
+./myenv/bin/python3 -m stgen.main \
+    --protocol mqtt \
+    --scenario smart_home \
+    --network-profile agri_bad \
+    --duration 60 \
+    --num-clients 20
+\end{lstlisting}
+
+\subsubsection{Test CoAP}
+\begin{lstlisting}[language=bash, basicstyle=\footnotesize\ttfamily]
+./myenv/bin/python3 -m stgen.main \
+    --protocol coap \
+    --scenario smart_home \
+    --network-profile agri_bad \
+    --duration 60 \
+    --num-clients 20
+\end{lstlisting}
+
+\subsubsection{Results Location}
+Results are saved in \texttt{results/[protocol]\_smart\_home\_[timestamp]/summary.json}:
+\begin{lstlisting}[language=json, basicstyle=\footnotesize\ttfamily]
+{
+    "lat_avg_ms": 580.41,
+    "lat_p50_ms": 481.65,
+    "lat_p95_ms": 1270.18,
+    "loss": 0.0,
+    "sent": 48,
+    "recv": 48
+}
+\end{lstlisting}
+
+\subsection{Reproducing Scalability Test (Table~\ref{tab:scalability})}
+
+Run the automated scalability benchmark:
+\begin{lstlisting}[language=bash, basicstyle=\footnotesize\ttfamily]
+./myenv/bin/python3 run_scalability_test.py
+\end{lstlisting}
+
+This tests Custom UDP protocol with 100, 500, 1000, 2000, 3000, and 6000 nodes, measuring startup time, memory usage, CPU utilization, throughput, and latency. Results are printed as a LaTeX table.
+
+\subsection{Network Configuration}
+
+The \texttt{agri\_bad} network profile used in our experiments:
+\begin{lstlisting}[language=json, basicstyle=\footnotesize\ttfamily]
+{
+    "latency_ms": 150,
+    "jitter_ms": 30,
+    "loss_percent": 5.0,
+    "bandwidth_kbps": 1000
+}
+\end{lstlisting}
+
+Located at: \texttt{configs/network\_conditions/agri\_bad.json}
+
+\subsection{Troubleshooting}
+
+\subsubsection{Verify Network Emulation}
+\begin{lstlisting}[language=bash, basicstyle=\footnotesize\ttfamily]
+sudo tc qdisc show dev lo
+# Expected: netem delay 150ms 30ms loss 5%
+\end{lstlisting}
+
+\subsubsection{Port Already in Use}
+\begin{lstlisting}[language=bash, basicstyle=\footnotesize\ttfamily]
+lsof -i :1883   # MQTT
+lsof -i :5683   # CoAP
+kill -9 <PID>   # Kill conflicting process
+\end{lstlisting}
+
+\subsection{Key Metrics}
+\begin{itemize}
+    \item \textbf{lat\_avg\_ms}: Average round-trip latency
+    \item \textbf{lat\_p50\_ms}: Median latency (50th percentile)
+    \item \textbf{lat\_p95\_ms}: Tail latency (95th percentile)
+    \item \textbf{loss}: Application-level message loss rate (0-1)
+    \item \textbf{sent/recv}: Total messages sent and received
+\end{itemize}
+
+\subsection{Citation and Support}
+
+If you use STGen in your research, please cite:
+\begin{quote}
+[Your Name et al.], ``STGen: A Scalable Traffic Generator for IoT Protocol Benchmarking,'' \textit{[Journal/Conference Name]}, 2026.
+\end{quote}
+
+Repository: \texttt{https://github.com/[repo]/STGen}
+
+\end{lstlisting}

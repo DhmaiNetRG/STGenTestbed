@@ -1,0 +1,29 @@
+{
+    "name": "Stress Testing (High Load)",
+    "description": "Maximum throughput test with high frequency sensors",
+    "protocol": "YOUR_PROTOCOL",
+    "mode": "active",
+    "server_ip": "127.0.0.1",
+    "server_port": 5000,
+    "num_clients": 100,
+    "duration": 120,
+    "packets_per_client": 100,
+    "sensors": ["temp", "pressure", "vibration", "power"],
+    "traffic_pattern": {
+        "temp": {"rate_hz": 10.0, "burst": false},
+        "pressure": {"rate_hz": 10.0, "burst": false},
+        "vibration": {"rate_hz": 20.0, "burst": false},
+        "power": {"rate_hz": 5.0, "burst": false}
+    },
+    "network_conditions": {
+        "latency_ms": 10,
+        "jitter_ms": 5,
+        "bandwidth_kbps": 10000,
+        "loss_percent": 0.1
+    },
+    "failure_injection": {
+        "packet_loss": 0.001,
+        "client_crashes": []
+    },
+    "network_profile": "wifi"
+}

@@ -1,0 +1,29 @@
+{
+    "name": "Smart Home (Automation)",
+    "description": "Typical smart home with bursty event-driven sensors",
+    "protocol": "YOUR_PROTOCOL",
+    "mode": "active",
+    "server_ip": "127.0.0.1",
+    "server_port": 5000,
+    "num_clients": 8,
+    "duration": 60,
+    "packets_per_client": 10,
+    "sensors": ["motion", "door_contact", "temperature", "light"],
+    "traffic_pattern": {
+        "motion": {"rate_hz": 0.1, "burst": true},     
+        "door_contact": {"rate_hz": 0.05, "burst": true},
+        "temperature": {"rate_hz": 0.1, "burst": false},
+        "light": {"rate_hz": 0.1, "burst": false}     
+    },
+    "network_conditions": {
+        "latency_ms": 20,
+        "jitter_ms": 5,
+        "bandwidth_kbps": 5000,
+        "loss_percent": 1.0
+    },
+    "failure_injection": {
+        "packet_loss": 0.01,  
+        "client_crashes": []
+    },
+    "network_profile": "agri_bad"
+}

@@ -1,0 +1,71 @@
+% Protocol Latency Comparison: CoAP vs MQTT under Congested Conditions
+% Generated: 2026-01-10
+% Experimental Data: smart_home scenario with network emulation (150ms ±30ms, 5% loss)
+
+\begin{table}[h!]
+\centering
+\caption{Protocol Performance Comparison Under Congested Network Conditions}
+\label{tab:protocol-latency}
+\begin{tabular}{l c c c c c}
+\hline
+\textbf{Protocol} & \textbf{Avg (ms)} & \textbf{P50 (ms)} & \textbf{P95 (ms)} & \textbf{Std Dev (ms)} & \textbf{Loss (\%)} \\ \hline
+CoAP             & 528.95            & 316.28            & 2574.26           & 694.01                & 10.4               \\
+MQTT             & 580.41            & 481.65            & 1270.18           & 258.20                & 0.0                \\ \hline
+\end{tabular}
+
+\vspace{0.3cm}
+\begin{minipage}{\linewidth}
+\small
+\textbf{Experimental Conditions:} 150ms ±30ms latency, 5\% packet loss, 1000 kbps bandwidth, 60-second test duration, smart home scenario with 20 clients.
+
+\vspace{0.2cm}
+\textbf{Loss Interpretation:} Message loss for CoAP represents application-level request timeouts under constrained UDP conditions with confirmable (CON) message retries, whereas MQTT achieves zero observed loss due to TCP's reliable delivery guarantees, at the cost of increased median latency but improved tail latency stability (2.7× lower standard deviation).
+\end{minipage}
+\end{table}
+
+% Alternative: More compact version
+\begin{table}[h!]
+\centering
+\caption{CoAP vs. MQTT: Latency Analysis Under Network Congestion}
+\label{tab:protocol-comparison-compact}
+\begin{tabular}{l c c c c c}
+\hline
+\textbf{Protocol} & \textbf{Median} & \textbf{Mean} & \textbf{P95} & \textbf{$\sigma$} & \textbf{Loss} \\ 
+                  & \textbf{(ms)}   & \textbf{(ms)} & \textbf{(ms)} & \textbf{(ms)} & \textbf{(\%)} \\ \hline
+CoAP (UDP)       & 316.28          & 528.95        & 2574.26       & 694.01        & 10.4          \\
+MQTT (TCP)       & 481.65          & 580.41        & 1270.18       & 258.20        & 0.0           \\ \hline
+\multicolumn{6}{l}{\small\textit{Network: 150ms ±30ms latency, 5\% loss, 1 Mbps bandwidth, n=20 clients}} \\
+\end{tabular}
+\end{table}
+
+% IEEE-style version (two-column format)
+\begin{table*}[t]
+\centering
+\caption{Comparative Performance Analysis of IoT Protocols Under Constrained Network Conditions}
+\label{tab:iot-protocol-performance}
+\begin{tabular}{l c c c c c c}
+\hline
+\textbf{Protocol} & \textbf{Transport} & \textbf{Median (ms)} & \textbf{Mean (ms)} & \textbf{P95 (ms)} & \textbf{Std Dev (ms)} & \textbf{Loss (\%)} \\ \hline
+CoAP             & UDP/DTLS          & 316.28               & 528.95             & 2574.26           & 694.01                & 10.4               \\
+MQTT             & TCP/TLS           & 481.65               & 580.41             & 1270.18           & 258.20                & 0.0                \\ \hline
+\multicolumn{7}{l}{\small Conditions: 150 ms base latency, ±30 ms jitter, 5\% packet loss, 1 Mbps bandwidth, 60s duration, 20 concurrent clients} \\
+\multicolumn{7}{l}{\small Loss metric represents application-level message delivery failure; MQTT 0\% due to TCP retransmission} \\
+\end{tabular}
+\end{table*}
+
+% Results interpretation table
+\begin{table}[h!]
+\centering
+\caption{Protocol Trade-off Analysis}
+\label{tab:protocol-tradeoffs}
+\begin{tabular}{l c c c}
+\hline
+\textbf{Metric} & \textbf{CoAP} & \textbf{MQTT} & \textbf{Winner} \\ \hline
+Median Latency & 316 ms & 482 ms & \textcolor{green}{\textbf{CoAP (-34\%)}} \\
+Tail Latency (P95) & 2574 ms & 1270 ms & \textcolor{green}{\textbf{MQTT (-51\%)}} \\
+Latency Variance ($\sigma$) & 694 ms & 258 ms & \textcolor{green}{\textbf{MQTT (-63\%)}} \\
+Message Loss & 10.4\% & 0.0\% & \textcolor{green}{\textbf{MQTT (100\%)}} \\
+Reliability & Low & High & \textcolor{green}{\textbf{MQTT}} \\ \hline
+\multicolumn{4}{l}{\small\textit{MQTT preferred for mission-critical applications; CoAP for latency-sensitive best-effort}} \\
+\end{tabular}
+\end{table}

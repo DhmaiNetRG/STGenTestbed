@@ -16,7 +16,7 @@ except ImportError:
 RESULTS_DIR = Path("../results")
 SCENARIO_FILE = Path("../configs/scenarios/smart_agriculture.json")
 # Add all protocols you want to compare
-PROTOCOLS_TO_COMPARE = ["mqtt", "coap", "my_udp"] 
+PROTOCOLS_TO_COMPARE = ["mqtt", "coap", "custom_udp"] 
 # ---------------------
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")

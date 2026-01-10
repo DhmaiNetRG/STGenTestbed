@@ -1,0 +1,29 @@
+{
+    "name": "Event-Driven Bursts",
+    "description": "Sudden burst of sensor readings triggered by events",
+    "protocol": "YOUR_PROTOCOL",
+    "mode": "active",
+    "server_ip": "127.0.0.1",
+    "server_port": 5000,
+    "num_clients": 50,
+    "duration": 90,
+    "packets_per_client": 20,
+    "sensors": ["motion", "door", "alarm", "camera"],
+    "traffic_pattern": {
+        "motion": {"rate_hz": 0.1, "burst": true},
+        "door": {"rate_hz": 0.05, "burst": true},
+        "alarm": {"rate_hz": 0.02, "burst": true},
+        "camera": {"rate_hz": 0.5, "burst": true}
+    },
+    "network_conditions": {
+        "latency_ms": 30,
+        "jitter_ms": 10,
+        "bandwidth_kbps": 5000,
+        "loss_percent": 1.0
+    },
+    "failure_injection": {
+        "packet_loss": 0.01,
+        "client_crashes": []
+    },
+    "network_profile": "4g"
+}

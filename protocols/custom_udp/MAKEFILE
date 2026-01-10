@@ -1,0 +1,11 @@
+CC=gcc
+CFLAGS=-O2 -Wall -I.
+BINDIR=../../bin
+TARGETS=$(BINDIR)/my_udp_server $(BINDIR)/my_udp_client
+all: $(TARGETS)
+$(BINDIR)/my_udp_server: my_udp_server.c stgen_compat.c
+	mkdir -p $(BINDIR) && $(CC) $(CFLAGS) $^ -o $@
+$(BINDIR)/custom_udp_client: custom_udp_client.c stgen_compat.c
+	mkdir -p $(BINDIR) && $(CC) $(CFLAGS) $^ -o $@
+clean:
+	rm -f $(TARGETS) recv.log

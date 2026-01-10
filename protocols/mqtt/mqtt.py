@@ -23,8 +23,10 @@ except ImportError as exc:
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from stgen.protocol_interface import ProtocolInterface
+from stgen.mongo_sink import get_sink
 
 _LOG = logging.getLogger("mqtt")
+
 
 
 class EmbeddedBroker:
@@ -321,8 +323,18 @@ class Protocol(ProtocolInterface):
             data = json.loads(msg.payload.decode())
             self._recv_count += 1
             
+            # Log for standard output
             _LOG.info(" SERVER RECEIVED (msg #%d): %s", 
                      self._recv_count, json.dumps(data, indent=2))
+            
+            # Log specifically for Web UI Controller to parse in real-time
+            # Using a prefix METRIC_DATA ensures the controller finds it
+            print(f"METRIC_DATA: {json.dumps(data)}")
+            
+            # Persist to MongoDB (Dual-Archiving)
+            sink = get_sink()
+            if sink.enabled:
+                sink.insert(data)
             
             if "ts" in data:
                 latency_ms = (time.time() - data["ts"]) * 1000

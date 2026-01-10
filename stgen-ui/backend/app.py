@@ -134,7 +134,7 @@ async def get_protocols():
             {"id": "mqtt", "name": "MQTT", "port": 1883, "description": "Message Queue Telemetry Transport"},
             {"id": "coap", "name": "CoAP", "port": 5683, "description": "Constrained Application Protocol"},
             {"id": "srtp", "name": "SRTP", "port": 5004, "description": "Secure Real-time Transport Protocol"},
-            {"id": "my_udp", "name": "Custom UDP", "port": 6000, "description": "Custom UDP-based protocol"}
+            {"id": "custom_udp", "name": "Custom UDP", "port": 6000, "description": "Custom UDP-based protocol"}
         ]
     }
 
@@ -229,8 +229,15 @@ async def start_experiment(exp_id: str, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=404, detail="Experiment not found")
     
     try:
+        # Get current loop to schedule websocket broadcasts from sync thread
+        loop = asyncio.get_running_loop()
+        
+        def on_metric_cb(eid, data):
+            msg = {"type": "metrics", "data": data}
+            asyncio.run_coroutine_threadsafe(manager.broadcast(eid, msg), loop)
+
         # Start experiment in background
-        background_tasks.add_task(controller.start_experiment, exp_id)
+        background_tasks.add_task(controller.start_experiment, exp_id, on_metric=on_metric_cb)
         
         return {"status": "starting", "message": "Experiment started in background"}
     except Exception as e:

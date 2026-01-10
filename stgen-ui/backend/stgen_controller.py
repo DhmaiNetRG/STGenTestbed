@@ -72,7 +72,7 @@ class Experiment:
         # Save config
         self.config_file.write_text(json.dumps(config, indent=2))
     
-    def start(self):
+    def start(self, on_metric=None):
         """Start the experiment"""
         if self.status != ExperimentStatus.CREATED:
             raise RuntimeError(f"Cannot start experiment in {self.status} state")
@@ -107,8 +107,13 @@ class Experiment:
             
             logger.info(f"Experiment {self.id} started with PID {self.pid}")
             
-            # Monitor in background thread
+            # Monitor process status in background thread
             threading.Thread(target=self._monitor, daemon=True).start()
+            
+            # Monitor logs for real-time metrics in background thread
+            if on_metric:
+                self.on_metric = on_metric
+                threading.Thread(target=self._tail_logs, daemon=True).start()
             
         except Exception as e:
             self.status = ExperimentStatus.FAILED
@@ -116,6 +121,35 @@ class Experiment:
             if hasattr(self, 'log_fp'):
                 self.log_fp.close()
             raise
+
+    def _tail_logs(self):
+        """Tail log file for real-time metrics"""
+        if not self.log_file.exists():
+            time.sleep(1)
+        
+        try:
+            with open(self.log_file, 'r') as f:
+                # Seek to end? No, start from beginning to catch startup metrics
+                while self.status == ExperimentStatus.RUNNING:
+                    line = f.readline()
+                    if not line:
+                        time.sleep(0.1)
+                        continue
+                    
+                    if "METRIC_DATA:" in line:
+                        try:
+                            # Parse JSON from "METRIC_DATA: {...}"
+                            parts = line.split("METRIC_DATA:", 1)
+                            if len(parts) > 1:
+                                json_str = parts[1].strip()
+                                data = json.loads(json_str)
+                                if self.on_metric:
+                                    self.on_metric(self.id, data)
+                        except Exception:
+                            # Ignore parsing errors in log stream
+                            pass
+        except Exception as e:
+            logger.error(f"Error tailing logs for {self.id}: {e}")
     
     def _monitor(self):
         """Monitor experiment process"""
@@ -340,13 +374,13 @@ class ExperimentController:
         logger.info(f"Created experiment {exp_id}: {name}")
         return exp_id
     
-    def start_experiment(self, exp_id: str):
+    def start_experiment(self, exp_id: str, on_metric=None):
         """Start an experiment"""
         if exp_id not in self.experiments:
             raise ValueError(f"Experiment {exp_id} not found")
         
         experiment = self.experiments[exp_id]
-        experiment.start()
+        experiment.start(on_metric=on_metric)
     
     def stop_experiment(self, exp_id: str):
         """Stop an experiment"""

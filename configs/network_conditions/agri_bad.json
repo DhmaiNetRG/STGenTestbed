@@ -1,0 +1,7 @@
+{
+    "name": "Congested",
+    "latency_ms": 150,
+    "jitter_ms": 30,
+    "loss_percent": 5.0,
+    "bandwidth_kbps": 1000
+}

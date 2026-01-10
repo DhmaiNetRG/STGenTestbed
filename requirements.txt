@@ -23,3 +23,5 @@ pylint>=2.15
 # Documentation
 sphinx>=5.0
 sphinx-rtd-theme>=1.0
+pymongo>=4.0.0
+

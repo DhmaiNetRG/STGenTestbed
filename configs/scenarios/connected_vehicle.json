@@ -1,0 +1,29 @@
+{
+    "name": "Connected Vehicle (Fleet)",
+    "description": "Mobile fleet tracking with intermittent connectivity",
+    "protocol": "YOUR_PROTOCOL",
+    "mode": "active",
+    "server_ip": "127.0.0.1",
+    "server_port": 5000,
+    "num_clients": 15,
+    "duration": 60,
+    "packets_per_client": 30,
+    "sensors": ["gps", "speed", "fuel_level", "engine_temp"],
+    "traffic_pattern": {
+        "gps": {"rate_hz": 1.0, "burst": false},     
+        "speed": {"rate_hz": 2.0, "burst": false},
+        "fuel_level": {"rate_hz": 0.05, "burst": false},
+        "engine_temp": {"rate_hz": 0.1, "burst": false}     
+    },
+    "network_conditions": {
+        "latency_ms": 100,
+        "jitter_ms": 30,
+        "bandwidth_kbps": 500,
+        "loss_percent": 2.0
+    },
+    "failure_injection": {
+        "packet_loss": 0.03,  
+        "client_crashes": []
+    },
+    "network_profile": "4g"
+}

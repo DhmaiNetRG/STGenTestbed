@@ -58,7 +58,7 @@ def run_experiment(node_count):
     
     # Configuration for this run
     cfg = {
-        "protocol": "my_udp",
+        "protocol": "custom_udp",
         "mode": "passive", # Protocol implementation forces passive
         "server_ip": "127.0.0.1",
         "server_port": 6000 + (node_count % 100),
@@ -69,7 +69,7 @@ def run_experiment(node_count):
     
     # Initialize Orchestrator
     try:
-        orch = Orchestrator("my_udp", cfg)
+        orch = Orchestrator("custom_udp", cfg)
         
         # Measure startup time
         t0 = time.perf_counter()
