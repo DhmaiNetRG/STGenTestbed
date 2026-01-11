@@ -1,0 +1,14 @@
+{
+  "name": "WAN Emulated (NetEm)",
+  "description": "Scenario C: Wide Area Network with high latency and constrained bandwidth",
+  "latency_ms": 150,
+  "jitter_ms": 10,
+  "loss_percent": 1.0,
+  "corruption_percent": 0.0,
+  "bandwidth_kbps": 10000,
+  "scenario": "C",
+  "deployment_type": "wan_emulated",
+  "expected_throughput_msg_sec": 10000,
+  "expected_latency_ms": 150,
+  "notes": "Simulates intercontinental WAN with packet loss and bandwidth constraints"
+}

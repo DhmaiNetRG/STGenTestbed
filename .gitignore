@@ -17,6 +17,8 @@ bin/
 results/
 *.log
 
+.env
+
 # IDE
 .vscode/
 .idea/

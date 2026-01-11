@@ -1,0 +1,13 @@
+{
+  "name": "Localhost (Baseline)",
+  "description": "Scenario A: Local deployment with minimal network overhead",
+  "latency_ms": 0,
+  "jitter_ms": 0,
+  "loss_percent": 0.0,
+  "corruption_percent": 0.0,
+  "bandwidth_kbps": 0,
+  "scenario": "A",
+  "deployment_type": "localhost",
+  "expected_throughput_msg_sec": 100000,
+  "expected_latency_ms": 0.1
+}

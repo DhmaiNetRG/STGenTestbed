@@ -124,6 +124,7 @@ STGen_Future_Present/
 └── docs/                       # Documentation
     ├── getting_started.md
     ├── protocol_integration.md
+    ├── NETWORK_TAX_EXPERIMENT.md  # Section 7.3 guide
     └── api_reference.md
 ```
 
@@ -144,6 +145,10 @@ python -m stgen.main --compare mqtt,coap --scenario smart_agriculture
 
 # With failure injection
 python3 -m stgen.main --protocol mqtt --inject-failures 0.1 --duration 60 --num-clients 100 --scenario connected_vehicle
+
+# Network tax experiment (Section 7.3) - Single device
+python run_network_tax_single_device.py --protocol mqtt --duration 60
+python analyze_network_tax.py --all --results-dir results/network_tax_single_device --format latex
 
 # List available options
 python -m stgen.main --help
