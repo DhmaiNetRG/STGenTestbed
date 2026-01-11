@@ -7,6 +7,10 @@ __pycache__/
 venv/
 env/
 myenv/
+*.egg-info/
+dist/
+build/
+*.egg
 
 # Build artifacts
 bin/
@@ -24,7 +28,32 @@ results/
 .idea/
 *.swp
 *.swo
+*.code-workspace
 
 # OS
 .DS_Store
 Thumbs.db
+
+# STGen specific
+*_config.json
+core_node_config.json
+sensor_node_config.json
+
+# ELK/Monitoring data
+elk_data/
+elasticsearch/
+logstash/
+kibana/
+
+# Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
+
+# pytest cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary files
+*.tmp
+*.bak
+*~
