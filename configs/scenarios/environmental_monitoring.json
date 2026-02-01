@@ -1,7 +1,7 @@
 {
     "name": "Environmental Monitoring (Remote)",
     "description": "Low-power wide-area network sensors for wildfire detection",
-    "protocol": "YOUR_PROTOCOL",
+    "protocol": "coap",
     "mode": "active",
     "server_ip": "127.0.0.1",
     "server_port": 5000,

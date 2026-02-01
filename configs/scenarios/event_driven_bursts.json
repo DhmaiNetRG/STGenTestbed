@@ -1,7 +1,7 @@
 {
     "name": "Event-Driven Bursts",
     "description": "Sudden burst of sensor readings triggered by events",
-    "protocol": "YOUR_PROTOCOL",
+    "protocol": "mqtt",
     "mode": "active",
     "server_ip": "127.0.0.1",
     "server_port": 5000,

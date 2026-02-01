@@ -205,25 +205,79 @@ class Protocol(ProtocolInterface):
     def start_clients(self, num: int) -> None:
         """Start MQTT publisher clients."""
         _LOG.info("MQTT: Starting %d publisher clients", num)
+        print(f"🔧 DEBUG: Starting client creation loop for {num} clients")
+        sys.stdout.flush()
+        
+        # Calculate adaptive staggered delay to prevent overwhelming broker
+        # Faster for small deployments, slower for large ones
+        if num <= 20:
+            stagger_delay = 0.001  # 1ms for very small (20 or fewer)
+        elif num <= 100:
+            stagger_delay = 0.005  # 5ms for small (20-100)
+        elif num <= 500:
+            stagger_delay = 0.025  # 25ms for medium (100-500)
+        else:
+            stagger_delay = 0.05   # 50ms for large (500+)
+        
+        print(f"🔧 DEBUG: Stagger delay set to {stagger_delay}s per client ({num} clients → ~{stagger_delay * num:.2f}s total)")
+        sys.stdout.flush()
+        
+        start_time = time.time()
+        failed_count = 0
         
         for i in range(num):
             client_id = f"stgen_client_{i}"
-            client = mqtt.Client(client_id=client_id, clean_session=True, protocol=mqtt.MQTTv311)
             
-            client.on_connect = lambda c, ud, f, rc, cid=client_id: self._on_client_connect(c, ud, f, rc, cid)
-            client.on_publish = self._on_publish
-            client.on_disconnect = lambda c, ud, rc, cid=client_id: self._on_client_disconnect(c, ud, rc, cid)
+            # Debug: Show progress
+            if i % 50 == 0:
+                elapsed = time.time() - start_time
+                print(f"🔧 DEBUG: Creating client {i}/{num} (elapsed: {elapsed:.2f}s)")
+                sys.stdout.flush()
             
             try:
+                # Create client
+                client = mqtt.Client(client_id=client_id, clean_session=True, protocol=mqtt.MQTTv311)
+                _LOG.debug("  Client %s object created", client_id)
+                
+                # Set callbacks
+                client.on_connect = lambda c, ud, f, rc, cid=client_id: self._on_client_connect(c, ud, f, rc, cid)
+                client.on_publish = self._on_publish
+                client.on_disconnect = lambda c, ud, rc, cid=client_id: self._on_client_disconnect(c, ud, rc, cid)
+                
+                # Connect
+                print(f"🔧 DEBUG: [{i+1}/{num}] Attempting connection for {client_id} to {self.broker_host}:{self.broker_port}")
+                sys.stdout.flush()
                 client.connect(self.broker_host, self.broker_port, self.keepalive)
                 client.loop_start()
                 self._clients.append(client)
+                print(f"✅ DEBUG: [{i+1}/{num}] {client_id} connection initiated (total connected: {len(self._clients)})")
+                sys.stdout.flush()
+                
+                # Stagger client connections to prevent overwhelming the broker
+                if i < num - 1:  # Don't delay after the last client
+                    time.sleep(stagger_delay)
+                    
             except Exception as e:
+                failed_count += 1
                 _LOG.error("Failed to connect client %s: %s", client_id, e)
+                print(f"❌ DEBUG: [{i+1}/{num}] {client_id} connection FAILED: {type(e).__name__}: {e}")
+                sys.stdout.flush()
         
-        # Wait for all connections
-        time.sleep(1.0)
+        # Wait for all connections to establish
+        print(f"🔧 DEBUG: All {num} connection attempts completed. Waiting 2 seconds for establishment...")
+        sys.stdout.flush()
+        time.sleep(2.0)
+        
         connected = sum(1 for c in self._clients if c.is_connected())
+        total_time = time.time() - start_time
+        
+        print(f"🔧 DEBUG: Connection statistics:")
+        print(f"  - Total clients created: {len(self._clients)}")
+        print(f"  - Clients successfully connected: {connected}")
+        print(f"  - Clients failed to connect: {failed_count}")
+        print(f"  - Total time: {total_time:.2f}s")
+        sys.stdout.flush()
+        
         _LOG.info("MQTT: %d clients connected (requested=%d)", connected, num)
 
         # If fewer physical clients connected than requested, explain reuse behavior

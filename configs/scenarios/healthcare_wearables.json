@@ -1,7 +1,7 @@
 {
     "name": "Healthcare Wearables",
     "description": "Patient monitoring with critical health data streams",
-    "protocol": "YOUR_PROTOCOL",
+    "protocol": "mqtt",
     "mode": "active",
     "server_ip": "127.0.0.1",
     "server_port": 5000,

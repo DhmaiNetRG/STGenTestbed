@@ -1,0 +1,112 @@
+% In IEEE conference-based TeX, the term "section" is used instead of "chapter."
+% Instead of "section," the term "subsection" is used.
+% \section{Extending STGen with Custom Protocols}
+\subsection{Adding a Custom Protocol}
+\label{subsec:custom_protocol}
+
+STGen's modular architecture is designed for extensibility, allowing researchers to integrate and evaluate new or proprietary protocols with minimal effort. This is achieved through a well-defined \texttt{ProtocolInterface} that abstracts the core functionalities required for traffic generation and data handling. This subsection outlines the procedure for adding a new protocol, which we will call `CustomUDP`, to the STGen framework.
+
+\subsubsection{The Protocol Interface}
+The foundation of STGen's protocol support is the \texttt{ProtocolInterface}, an abstract base class defined in \texttt{stgen/protocol\_interface.py}. Any new protocol must implement this interface, which specifies five key methods:
+\begin{itemize}
+    \item \texttt{\_\_init\_\_(self, cfg)}: Initializes the protocol, receiving the main configuration dictionary.
+    \item \texttt{start\_server(self)}: Starts the server component of the protocol. This must be a non-blocking operation, typically by launching a new thread or process.
+    \item \texttt{start\_clients(self, num)}: Starts a specified number of client instances.
+    \item \texttt{send\_data(self, client\_id, data)}: Transmits a data payload from a specific client. This method is central to the traffic generation process.
+    \item \texttt{stop(self)}: Gracefully terminates all server and client processes, ensuring clean shutdown and resource release.
+\end{itemize}
+
+\subsubsection{Implementation Steps}
+To integrate a new protocol, a developer follows a three-step process, illustrated in Fig.~\ref{fig:protocol_impl_steps}.
+
+\begin{figure}[h!]
+    \centering
+    % This would be an actual figure in a real paper
+    \fbox{
+        \begin{minipage}{0.9\columnwidth}
+            \textbf{Step 1: Create Protocol Directory} \\
+            \texttt{protocols/custom\_udp/}
+            \vspace{0.5em}
+
+            \textbf{Step 2: Implement Protocol Class} \\
+            Create \texttt{protocols/custom\_udp/\_\_init\_\_.py} and \texttt{custom\_udp.py}. The main logic resides in a \texttt{Protocol} class that inherits from \texttt{ProtocolInterface}.
+            \vspace{0.5em}
+
+            \textbf{Step 3: Create Configuration File} \\
+            Create \texttt{configs/custom\_udp.json} to define the protocol's parameters and experimental setup.
+        \end{minipage}
+    }
+    \caption{Steps for Integrating a Custom Protocol into STGen.}
+    \label{fig:protocol_impl_steps}
+\end{figure}
+
+\paragraph{Step 1: Create Protocol Directory}
+First, a new directory is created within the \texttt{protocols/} folder. The directory name should match the name of the new protocol and contain an empty \texttt{\_\_init\_\_.py} file to mark it as a Python package. For our example, this would be \texttt{protocols/custom\_udp/}.
+
+\paragraph{Step 2: Implement the Protocol Class}
+Inside the new directory, a Python file (e.g., \texttt{custom\_udp.py}) is created. This file must contain a class named \texttt{Protocol} that inherits from \texttt{ProtocolInterface} and implements all its abstract methods. A template file, \texttt{protocols/template/template.py}, is provided to streamline this process. Listing~\ref{lst:protocol_template} shows a simplified implementation.
+
+\begin{lstlisting}[language=Python, caption={Example implementation of a custom protocol by extending the \texttt{ProtocolInterface}.}, label={lst:protocol_template}, frame=single, basicstyle=\footnotesize\ttfamily]
+# In protocols/custom_udp/custom_udp.py
+import time
+from stgen.protocol_interface import ProtocolInterface
+
+class Protocol(ProtocolInterface):
+    """
+    CustomUDP protocol implementation.
+    """
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self.server_ip = cfg.get("server_ip", "0.0.0.0")
+        self.server_port = cfg.get("server_port", 9999)
+        # Other initializations...
+
+    def start_server(self):
+        # Code to start a non-blocking UDP server
+        # e.g., in a separate thread
+        print("UDP Server started.")
+        pass
+
+    def start_clients(self, num):
+        # Code to initialize 'num' UDP clients
+        print(f"Initializing {num} UDP clients.")
+        pass
+
+    def send_data(self, client_id, data):
+        # Code for a client to send a UDP packet
+        # with 'data' to the server
+        # Return tuple: (success_boolean, timestamp)
+        return (True, time.time())
+
+    def stop(self):
+        # Code to gracefully stop server and clients
+        print("Stopping UDP server and clients.")
+        pass
+\end{lstlisting}
+
+The STGen orchestration engine dynamically loads the specified protocol at runtime. When a configuration with \texttt{"protocol": "custom\_udp"} is provided, the framework looks for a \texttt{custom\_udp.py} module inside the \texttt{protocols/custom\_udp/} directory and instantiates its \texttt{Protocol} class.
+
+\paragraph{Step 3: Create Configuration File}
+Finally, a JSON configuration file for the new protocol is created in the \texttt{configs/} directory (e.g., \texttt{configs/custom\_udp.json}). This file specifies the protocol name and any other parameters required for the experiment.
+
+\begin{lstlisting}[language=JSON, caption={Example configuration in \texttt{configs/custom\_udp.json}.}, label={lst:config_example}, frame=single, basicstyle=\footnotesize\ttfamily]
+{
+  "protocol": "custom_udp",
+  "num_clients": 100,
+  "duration": 60,
+  "server_port": 9999,
+  "scenario": "custom_scenario"
+}
+\end{lstlisting}
+
+Once these steps are completed, the new protocol is fully integrated and can be used for experimentation and comparison against other protocols using the main command-line interface:
+\begin{verbatim}
+# Run an experiment with the new protocol
+python -m stgen.main configs/custom_udp.json
+
+# Compare the new protocol against MQTT
+python -m stgen.main --compare custom_udp,mqtt \
+       --scenario smart_home
+\end{verbatim}
+
+This streamlined, convention-over-configuration approach significantly lowers the barrier to entry for evaluating new communication protocols within a standardized, reproducible environment, fostering innovation and rigorous comparative analysis in the IoT domain.

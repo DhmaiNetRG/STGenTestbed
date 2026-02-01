@@ -1,7 +1,7 @@
 {
     "name": "Smart Agriculture (Low Power)",
     "description": "Sparse sensors with infrequent updates, low bandwidth",
-    "protocol": "YOUR_PROTOCOL",
+    "protocol": "mqtt",
     "mode": "active",
     "server_ip": "127.0.0.1",
     "server_port": 5000,

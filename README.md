@@ -6,20 +6,8 @@
 
 ## Overview
 
-STGen is a comprehensive, **research-grade** framework for testing, validating, and comparing IoT communication protocols under realistic network conditions. Designed for academic and industrial use.
+STGen is a comprehensive framework for testing, validating, and comparing IoT communication protocols under realistic network conditions. Designed for academic and industrial use.
 
-### Key Capabilities
-
-- **Protocol-Agnostic Architecture**: Support for MQTT, CoAP, SRTP, and custom protocols
-- **Realistic Workloads**: 7 predefined IoT scenarios (smart home, agriculture, healthcare, etc.)
-- **Network Emulation**: Simulate latency, jitter, packet loss, and bandwidth constraints
-- **Fault Injection**: Test resilience under failures (crashes, partitions, corruption)
-- **Automated Validation**: SLA compliance checks and protocol benchmarking
-- **Scalability**: Support for 6000+ concurrent IoT devices
-- **Real-time Monitoring**: Web-based dashboard with live metrics
-- **Publication-Ready Reports**: Automated comparison analysis and metrics export
-
----
 
 ##  Getting Started (Zero to Running)
 
@@ -42,12 +30,6 @@ Before you begin, ensure you have the following installed:
     sudo systemctl enable mosquitto
     sudo systemctl start mosquitto
     ```
-*   **macOS**:
-    ```bash
-    brew install mosquitto
-    brew services start mosquitto
-    ```
-
 ---
 
 ###  Setup Python Environment
@@ -68,7 +50,6 @@ Installs STGen core, dashboard backend, and protocol libs.
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
-
 ---
 
 ###  Run the System
@@ -85,7 +66,7 @@ chmod +x start_all.sh  # Make executable (first time only)
 ###  Access the Dashboard
 
 Open your web browser and go to:
-👉 **[http://localhost:3000](http://localhost:3000)**
+**[http://localhost:3000](http://localhost:3000)**
 
 You can now create experiments, simulate failures, and visualize real-time metrics.
 
@@ -228,9 +209,7 @@ Interactive API docs available at: **http://localhost:8000/docs**
 ### Local Development
 ```bash
 ./start_all.sh          # Unix-like systems
-start_all.bat           # Windows
 ```
-
 ---
 
 ## Contributing
@@ -244,20 +223,6 @@ Contributions are welcome! To extend STGen:
 
 ---
 
-## Citation
-
-If you use STGen in your research, please cite:
-
-```bibtex
-@software{stgen2024,
-  title={STGen: IoT Protocol Testing and Evaluation Framework},
-  author={Your Name},
-  year={2024},
-  url={https://github.com/yourusername/stgen}
-}
-```
-
----
 
 ## Technical Stack
 
@@ -268,25 +233,7 @@ If you use STGen in your research, please cite:
 | Backend API | FastAPI, Uvicorn |
 | Network Simulation | Linux tc/netem |
 | Documentation | Doxygen, Markdown |
-| Containerization | Docker |
 
----
-
-## System Requirements
-### Minimum
-- **OS**: Linux, macOS, or Windows (via WSL2/Docker)
-- **CPU**: 2 cores
-- **RAM**: 4 GB
-- **Disk**: 1.5 GB
-- **Python**: 3.8+
-- **Node.js**: 16+
-
-### Recommended
-- **CPU**: 4+ cores
-- **RAM**: 8 GB
-- **Disk**: SSD with 5 GB space
-
----
 
 ## Troubleshooting
 

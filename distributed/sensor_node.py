@@ -132,7 +132,7 @@ def main():
     config_file = Path(f"node_{args.node_id}_config.json")
     config_file.write_text(json.dumps(config, indent=2))
     
-    print(f"🚀 Starting Node {args.node_id} with {args.sensors} sensors")
+    print(f" Starting Node {args.node_id} with {args.sensors} sensors")
     print(f"   Core: {args.core_ip}:{args.core_port}")
     print(f"   Protocol: {args.protocol}")
     print(f"   Sensor Types: {', '.join(sensor_list)}")
