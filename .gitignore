@@ -20,7 +20,7 @@ bin/
 # Results
 results/
 *.log
-
+myenv/
 .env
 
 # IDE
