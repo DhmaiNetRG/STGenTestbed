@@ -1,0 +1,14 @@
+{
+  "name": "Distributed LAN",
+  "description": "Scenario B: Distributed deployment over local area network (Gigabit Ethernet)",
+  "latency_ms": 1,
+  "jitter_ms": 0,
+  "loss_percent": 0.0,
+  "corruption_percent": 0.0,
+  "bandwidth_kbps": 1000000,
+  "scenario": "B",
+  "deployment_type": "distributed_lan",
+  "expected_throughput_msg_sec": 80000,
+  "expected_latency_ms": 1.0,
+  "notes": "Simulates real LAN with typical 1ms RTT"
+}

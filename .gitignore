@@ -1,0 +1,73 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+myenv/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Build artifacts
+bin/
+*.o
+*.a
+
+# Results
+results/
+*.log
+myenv/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# STGen specific
+*_config.json
+core_node_config.json
+sensor_node_config.json
+
+# ELK/Monitoring data
+elk_data/
+elasticsearch/
+logstash/
+kibana/
+
+# Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
+
+# pytest cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# Generated figures (regenerate from scripts)
+images/
+
+# Runtime sensor logs
+sensor_log/
+
+# Manuscript / LaTeX (code-only repo)
+*.tex
+paper/
+
+# External dataset (public, from the MIT IBRL URL) and Doxygen config
+Intel_dataset/
+Doxyfile

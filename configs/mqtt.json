@@ -1,0 +1,13 @@
+{
+  "protocol": "mqtt",
+  "mode": "active",
+  "server_ip": "127.0.0.1",
+  "server_port": 1883,
+  "num_clients": 4,
+  "duration": 10,
+  "sensors": ["temp", "humidity", "motion"],
+  "topic": "stgen/sensors",
+  "qos": 1,
+  "keepalive": 60,
+  "network_profile": "congested"
+}

@@ -1,0 +1,10 @@
+{
+  "protocol": "SRTP",
+  "mode": "active",
+  "server_ip": "localhost",
+  "server_port": 5004,
+  "client_port": 5005,
+  "num_clients": 4,
+  "duration": 10,
+  "sensors": ["temp", "device", "gps", "camera"]
+}
