@@ -34,6 +34,8 @@ myenv/
 .DS_Store
 Thumbs.db
 
+paper.tex
+
 # STGen specific
 *_config.json
 core_node_config.json
