@@ -19,7 +19,11 @@ int main(int argc, char *argv[]) {
     const char* ip = argv[1];
     int port = atoi(argv[2]);
     // argv[3] is id, maybe use in payload if needed
-    
+    // argv[4] (optional) is the generation rate in Hz; default 10 Hz.
+    double rate_hz = (argc >= 5) ? atof(argv[4]) : 10.0;
+    if (rate_hz <= 0.0) rate_hz = 10.0;
+    useconds_t period_us = (useconds_t)(1000000.0 / rate_hz);
+
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     struct sockaddr_in servaddr;
     
@@ -39,8 +43,8 @@ int main(int argc, char *argv[]) {
         hdr->send_time_us = now_us();
         
         sendto(sockfd, hdr, sizeof(stgen_hdr_t) + 100, 0, (const struct sockaddr *)&servaddr, sizeof(servaddr));
-        
-        usleep(100000); // 100ms = 10 msg/s
+
+        usleep(period_us); // generation period derived from rate_hz (argv[4], default 10 Hz)
     }
     
     free(hdr);

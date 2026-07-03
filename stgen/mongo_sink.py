@@ -1,4 +1,3 @@
-
 import logging
 import os
 import time
@@ -63,11 +62,12 @@ class MongoSink:
             return
             
         try:
-            # Add metadata if missing
-            if "received_at" not in data:
-                data["received_at"] = datetime.utcnow()
+            # Work on a shallow copy so the caller's dict is never mutated
+            doc = dict(data)
+            if "received_at" not in doc:
+                doc["received_at"] = datetime.utcnow()
                 
-            self.collection.insert_one(data)
+            self.collection.insert_one(doc)
         except Exception as e:
             _LOG.error(f"MongoDB write error: {e}")
 

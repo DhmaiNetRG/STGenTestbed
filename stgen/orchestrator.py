@@ -1,4 +1,3 @@
-
 ##! @file orchestrator.py
 ##! @brief Test Orchestration Engine for STGen
 ##! 
@@ -24,7 +23,14 @@ from typing import Iterable, Tuple, Dict, Any
 
 _LOG = logging.getLogger("orchestrator")
 
-from .failure_injector import FailureInjector, wrap_send_with_failures
+try:
+    from .failure_injector import FailureInjector, wrap_send_with_failures
+    HAS_FAILURE_INJECTOR = True
+except ImportError:
+    HAS_FAILURE_INJECTOR = False
+    FailureInjector = None
+    wrap_send_with_failures = None
+from .sensor_data_logger import SensorDataLogger
 
 class Orchestrator:
     ##! @class Orchestrator
@@ -72,13 +78,19 @@ class Orchestrator:
             "lat": [],
             "err": []
         }
+        
+        # Initialize sensor data logger
+        log_dir = cfg.get("sensor_log_dir", "sensor_log")
+        self.logger = SensorDataLogger(log_dir)
     
-    def apply_failure_injection(self, injector: FailureInjector):
+    def apply_failure_injection(self, injector):
         """
         Wrap the protocol's send_data method with failure injection logic.
         """
+        if not HAS_FAILURE_INJECTOR or wrap_send_with_failures is None:
+            _LOG.warning("FailureInjector not available — skipping failure injection")
+            return
         _LOG.info("Applying failure injection to protocol")
-        # Monkey patch the send_data method of the protocol instance
         original_send = self.protocol.send_data
         self.protocol.send_data = wrap_send_with_failures(original_send, injector)
 
@@ -158,6 +170,12 @@ class Orchestrator:
                 self.metrics["lat"].append((t_srv - t0) * 1000)
                 self.metrics["recv"] += 1
             
+            # Log sensor data to file
+            try:
+                self.logger.log_sensor_data(payload)
+            except Exception as log_err:
+                _LOG.debug(f"Failed to log sensor data: {log_err}")
+            
             # ACCURATE TIMING LOGIC (Drift Compensation)
             # The 'to' value is the target interval until the NEXT message.
             # We increment the target wake time by this interval.
@@ -229,11 +247,15 @@ class Orchestrator:
         }
         
         if lat:
-            summary["lat_avg_ms"] = sum(lat) / len(lat)
+            n = len(lat)
+            summary["lat_avg_ms"] = sum(lat) / n
             summary["lat_min_ms"] = lat[0]
             summary["lat_max_ms"] = lat[-1]
-            summary["lat_p50_ms"] = lat[len(lat) // 2]
-            summary["lat_p95_ms"] = lat[int(len(lat) * 0.95)]
+            # Fixed: Correct percentile calculation
+            # P50 = median, P95 = 95th percentile, etc.
+            summary["lat_p50_ms"] = lat[int(n * 0.50) - 1] if n > 0 else 0
+            summary["lat_p95_ms"] = lat[int(n * 0.95) - 1] if n > 0 else 0
+            summary["lat_p99_ms"] = lat[int(n * 0.99) - 1] if n > 0 else 0
         
         # Save summary
         (out_dir / "summary.json").write_text(json.dumps(summary, indent=2))
@@ -250,3 +272,13 @@ class Orchestrator:
         _LOG.info(f"  Sent: {summary['sent']}, Recv: {summary['recv']}, Loss: {summary['loss']*100:.2f}%")
         if lat:
             _LOG.info(f"  Latency: avg={summary['lat_avg_ms']:.2f}ms, p50={summary['lat_p50_ms']:.2f}ms")
+        
+        # Close sensor logger and save sensor statistics
+        try:
+            self.logger.close()
+            # Add sensor log stats to summary
+            summary["sensor_logs"] = self.logger.get_stats()
+            # Update summary with sensor log info
+            (out_dir / "summary.json").write_text(json.dumps(summary, indent=2))
+        except Exception as e:
+            _LOG.warning(f"Error closing sensor logger: {e}")

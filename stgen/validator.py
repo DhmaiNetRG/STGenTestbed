@@ -148,13 +148,13 @@ class ProtocolValidator:
     def _check_ordering(self) -> None:
         """Check message ordering (if required)."""
         if self.qos.get("in_order_delivery", False):
-            # Check if protocol maintains order
-            # This requires sequence number analysis (to be implemented)
+            # Sequence-number analysis not yet implemented.
+            # Report as skipped (not a false PASS) so the report is honest.
             self.checks.append(ValidationResult(
                 check_name="Message Ordering",
-                passed=True,  # Placeholder
-                message="Order preservation not yet validated",
-                severity="info"
+                passed=False,
+                message="Order preservation check not yet implemented — skipped",
+                severity="info"  # info so it doesn't fail the suite, but shows as not-passed
             ))
     
     def _check_error_handling(self) -> None:

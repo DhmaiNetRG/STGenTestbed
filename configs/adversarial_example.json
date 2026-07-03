@@ -1,0 +1,34 @@
+{
+  "protocol": "custom_udp",
+  "mode": "active",
+  "server_ip": "127.0.0.1",
+  "server_port": 5000,
+  "num_clients": 50,
+  "duration": 60,
+  "sensors": ["temp"],
+  "seed": 42,
+  "traffic_pattern": {
+    "temp": {"rate_hz": 1.0, "burst": false}
+  },
+
+  "adversarial": {
+    "enabled": true,
+    "seed": 42,
+    "attack": "fdi_spoof",
+    "fraction": 0.1,
+    "intensity": 3.0,
+    "probability": 1.0,
+    "start_s": 10.0,
+    "stop_s": 50.0,
+    "label_file": "results/anomaly_labels.jsonl"
+  },
+
+  "failure_injection": {
+    "seed": 42,
+    "packet_loss": 0.02,
+    "message_corruption": 0.01,
+    "client_crashes": [{"time": 25, "target": "client_3"}],
+    "network_partition": {"start_sec": 30, "duration_sec": 8},
+    "latency_spike": {"probability": 0.01, "duration_ms": 500}
+  }
+}

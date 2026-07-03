@@ -161,9 +161,14 @@ def run_single_test(cfg: dict) -> bool:
         orch = Orchestrator(cfg["protocol"], cfg)
 
         # --- 3. FAILURE INJECTION ---
+        # Driven from the JSON config: a structured "failure_injection" block, or
+        # the legacy flat "failure_rate". (Data-plane "adversarial" anomalies are
+        # applied inside the sensor stream itself and need no wiring here.)
         injector = None
-        if "failure_rate" in cfg and cfg["failure_rate"] > 0:
-            _LOG.info(f"Initializing failure injector with rate: {cfg['failure_rate']}")
+        fi_requested = ("failure_injection" in cfg) or (cfg.get("failure_rate", 0) > 0)
+        if fi_requested:
+            _LOG.info("Initializing failure injector (rate=%s, block=%s)",
+                      cfg.get("failure_rate", 0), "failure_injection" in cfg)
             try:
                 from .failure_injector import FailureInjector
                 injector = FailureInjector(cfg)
@@ -298,7 +303,7 @@ def main():
     if args.duration is not None:
         cfg["duration"] = args.duration
     if args.num_clients is not None:
-        cfg["num_sensors"] = args.num_clients
+        cfg["num_clients"] = args.num_clients  # Fixed: was num_sensors
     
     # Run comparison or single test
     if args.compare:

@@ -61,27 +61,37 @@ class FailureInjector:
         self.cfg = cfg  # Store the whole config, or look for 'failure_injection' key
         # Check if 'failure_injection' exists as a dict, or if we passed flat args
         fi_cfg = cfg.get("failure_injection", {})
-        
+
         # If 'failure_rate' is at top level (e.g. from CLI overrides), use it for packet loss
         top_loss = cfg.get("failure_rate", 0.0)
-        
+
         self.packet_loss_rate = fi_cfg.get("packet_loss", top_loss)
         self.corruption_rate = fi_cfg.get("message_corruption", 0.0)
-        
+
         self.crash_times = fi_cfg.get("client_crashes", [])
-        self.partition_cfg = self.cfg.get("network_partition", None)
-        self.latency_spike_cfg = self.cfg.get("latency_spike", None)
-        
+        # Read partition/latency from the failure_injection block first, falling
+        # back to the legacy top-level keys for backward compatibility.
+        self.partition_cfg = fi_cfg.get("network_partition",
+                                        self.cfg.get("network_partition", None))
+        self.latency_spike_cfg = fi_cfg.get("latency_spike",
+                                            self.cfg.get("latency_spike", None))
+
+        # Deterministic, reproducible randomness: a dedicated RNG seeded from the
+        # config (never the global random state). Required for labelled datasets.
+        self._rng = random.Random(fi_cfg.get("seed", cfg.get("seed")))
+        self.num_clients = int(cfg.get("num_clients", 10))
+
         self.crashed_clients: set[str] = set()
         self.partition_active = False
         self.partition_end_time = 0.0
-        
+
         self.start_time = time.time()
         self.events: List[FailureEvent] = []
         self.protocol = None
-        
-        _LOG.info("Failure Injector initialized: loss=%.1f%%, corruption=%.1f%%",
-                  self.packet_loss_rate * 100, self.corruption_rate * 100)
+
+        _LOG.info("Failure Injector initialized: loss=%.1f%%, corruption=%.1f%%, seed=%s",
+                  self.packet_loss_rate * 100, self.corruption_rate * 100,
+                  fi_cfg.get("seed", cfg.get("seed")))
 
     def attach_protocol(self, protocol_instance):
         """
@@ -123,9 +133,9 @@ class FailureInjector:
             if hash(client_id) % 2 == 0:
                 _LOG.debug(" Packet dropped: network partition active")
                 return True
-        
+
         # Random packet loss
-        if random.random() < self.packet_loss_rate:
+        if self._rng.random() < self.packet_loss_rate:
             _LOG.debug(" Packet dropped: random loss")
             self.events.append(FailureEvent(
                 time_sec=elapsed,
@@ -143,7 +153,7 @@ class FailureInjector:
         Returns:
             bool: True if message should be corrupted
         """
-        if random.random() < self.corruption_rate:
+        if self._rng.random() < self.corruption_rate:
             elapsed = time.time() - self.start_time
             _LOG.warning("  Message corrupted")
             self.events.append(FailureEvent(
@@ -164,16 +174,24 @@ class FailureInjector:
             Corrupted message
         """
         corrupted = payload.copy()
-        
-        # Randomly corrupt one field
-        if "sensor_data" in corrupted:
-            # Flip bits in sensor data
-            corrupted["sensor_data"] = "CORRUPTED_" + str(corrupted["sensor_data"])
-        
-        if "seq_no" in corrupted and random.random() > 0.5:
+
+        # Corrupt the numeric sensor reading in a *meaningful* way (a value-domain
+        # fault), rather than turning it into a string. We flip the sign and scale
+        # it out of plausible range so the corruption is detectable and stays a
+        # number that downstream consumers can still parse.
+        sd = corrupted.get("sensor_data")
+        if isinstance(sd, dict):
+            sd = dict(sd)
+            for k, v in list(sd.items()):
+                if isinstance(v, (int, float)) and not isinstance(v, bool):
+                    sd[k] = round(-v * self._rng.uniform(8.0, 16.0), 4)
+            sd["_corrupted"] = True
+            corrupted["sensor_data"] = sd
+
+        if "seq_no" in corrupted and self._rng.random() > 0.5:
             # Corrupt sequence number
-            corrupted["seq_no"] = (corrupted["seq_no"] + random.randint(-100, 100)) % 65536
-        
+            corrupted["seq_no"] = (corrupted["seq_no"] + self._rng.randint(-100, 100)) % 65536
+
         return corrupted
     
     def check_client_crashes(self) -> List[str]:
@@ -185,21 +203,31 @@ class FailureInjector:
         """
         elapsed = time.time() - self.start_time
         crashed_now = []
-        
-        for crash_time in self.crash_times:
-            if abs(elapsed - crash_time) < 0.5 and crash_time not in [e.time_sec for e in self.events if e.failure_type == "client_crash"]:
-                # Time to crash a random client
-                client_id = f"client_{random.randint(0, 10)}"
+        already = {e.time_sec for e in self.events if e.failure_type == "client_crash"}
+
+        for entry in self.crash_times:
+            # Accept either a bare time (float) or a {time, target} mapping.
+            if isinstance(entry, dict):
+                ct = float(entry.get("time", entry.get("time_sec", 0.0)))
+                target = entry.get("target")
+            else:
+                ct = float(entry)
+                target = None
+
+            if abs(elapsed - ct) < 0.5 and ct not in already:
+                # Deterministic target (seeded) unless one is configured explicitly.
+                client_id = target or f"client_{self._rng.randrange(self.num_clients)}"
                 self.crashed_clients.add(client_id)
                 crashed_now.append(client_id)
-                
+                already.add(ct)
+
                 _LOG.warning(" Client %s CRASHED at %.1fs", client_id, elapsed)
                 self.events.append(FailureEvent(
                     time_sec=elapsed,
                     failure_type="client_crash",
                     target=client_id
                 ))
-        
+
         return crashed_now
     
     def revive_client(self, client_id: str) -> None:
@@ -269,7 +297,7 @@ class FailureInjector:
         probability = self.latency_spike_cfg.get("probability", 0.01)
         duration_ms = self.latency_spike_cfg.get("duration_ms", 500)
         
-        if random.random() < probability:
+        if self._rng.random() < probability:
             elapsed = time.time() - self.start_time
             delay_sec = duration_ms / 1000.0
             _LOG.warning("⏱️  Latency spike: +%.0fms", duration_ms)

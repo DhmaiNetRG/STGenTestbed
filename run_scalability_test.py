@@ -145,13 +145,19 @@ def run_experiment(node_count):
         }
 
 if __name__ == "__main__":
+    import sys, json as _json
     results = []
-    nodes_list = [100, 500, 1000, 2000, 3000, 6000]
+    # node counts may be overridden on the command line, e.g. `... 100 500 1000`
+    nodes_list = [int(a) for a in sys.argv[1:]] or [100, 500, 1000, 2000, 3000, 6000]
 
+    from pathlib import Path as _Path
+    _Path("results").mkdir(exist_ok=True)
     for n in nodes_list:
         try:
             r = run_experiment(n)
             results.append(r)
+            # incremental save so partial sweeps survive a hang/timeout
+            _Path("results/scalability_results.json").write_text(_json.dumps(results, indent=2))
         except KeyboardInterrupt:
             # Catch Ctrl+C during the experiment loop
             print("\nExperiment interrupted by user.")
@@ -161,6 +167,12 @@ if __name__ == "__main__":
             break
             
     if results:
+        # Persist raw results so the table has a reproducible artifact
+        from pathlib import Path as _Path
+        _Path("results").mkdir(exist_ok=True)
+        _Path("results/scalability_results.json").write_text(_json.dumps(results, indent=2))
+        print("\nSaved -> results/scalability_results.json")
+
         # Print LaTeX table
         print("\n\\begin{table*}[h!]")
         print("\\centering")

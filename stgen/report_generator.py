@@ -156,6 +156,7 @@ class ReportGenerator:
         recv = self.results.get("recv", 0)
         loss_pct = self.results.get("loss", 0) * 100
         throughput = self.results.get("throughput_msg_sec", 0)
+        lost = max(0, sent - recv)  # clamp — distributed mode can have recv > sent
         
         p50 = self.results.get("p50_ms", 0)
         p95 = self.results.get("p95_ms", 0)
@@ -320,7 +321,7 @@ class ReportGenerator:
             data: {{
                 labels: ['Received', 'Lost'],
                 datasets: [{{
-                    data: [{recv}, {sent - recv}],
+                    data: [{recv}, {lost}],
                     backgroundColor: ['#667eea', '#e74c3c']
                 }}]
             }},

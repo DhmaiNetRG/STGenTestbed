@@ -61,19 +61,26 @@ class Protocol(ProtocolInterface):
                 "Run: make -C protocols/my_udp"
             )
         
+        rate_hz = self.cfg.get("rate_hz") or self.cfg.get(
+            "traffic_pattern", {}).get("temp", {}).get("rate_hz", 10.0)
+
         def spawn_client(i):
             cmd = [
                 str(exe),
                 self.cfg["server_ip"],
                 str(self.cfg["server_port"]),
-                str(i)  # Client ID
+                str(i),          # Client ID
+                str(rate_hz),    # generation rate in Hz (explicit, not hardcoded)
             ]
             self._spawn(cmd, f"client-{i}")
 
-        with ThreadPoolExecutor(max_workers=min(num, 100)) as executor:
+        # Spawn with limited concurrency: forking this (heavy) Python process
+        # 100x at once spikes memory and can trip the OOM killer at scale.
+        with ThreadPoolExecutor(max_workers=min(num, 16)) as executor:
             executor.map(spawn_client, range(num))
-        
-        _LOG.info(f"Started {num} clients")
+
+        time.sleep(0.3)  # single global settle so all clients are up before traffic
+        _LOG.info(f"Started {num} clients at {rate_hz} Hz")
     
     def stop(self) -> None:
         """Terminate all spawned processes."""
@@ -103,17 +110,18 @@ class Protocol(ProtocolInterface):
                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
                 )
             else:
+                # start_new_session is the thread-safe C-level equivalent of
+                # preexec_fn=os.setsid; preexec_fn deadlocks under ThreadPoolExecutor.
                 p = subprocess.Popen(
                     cmd,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
-                    preexec_fn=os.setsid
+                    start_new_session=True
                 )
             
             self.procs.append(p)
-            _LOG.info(f"Started {name} (PID {p.pid})")
-            time.sleep(0.2)  # Brief settle time
-            
+            _LOG.debug(f"Started {name} (PID {p.pid})")
+
         except Exception as e:
             _LOG.error(f"Failed to spawn {name}: {e}")
             raise
