@@ -35,6 +35,9 @@ myenv/
 Thumbs.db
 
 paper.tex
+images/
+docs/
+paper/
 
 # STGen specific
 *_config.json
